@@ -3,27 +3,14 @@ const validation = require("../validators/validator");
 // This validation is used for creating blogs only. This checks whether the mandatory fields are present in the body or not and if absent sends a msg to provide the field
 const createBlogValidation = async function (req, res, next) {
 	try {
-		let { title, body, authorId, category } = req.body;
-
-		if (!title)
-			return res
-				.status(400)
-				.send({ status: false, msg: "title must be present" });
-
-		if (!body)
-			return res
-				.status(400)
-				.send({ status: false, msg: "body must be present" });
-
-		if (!authorId)
-			return res
-				.status(400)
-				.send({ status: false, msg: "authorId must be present" });
-
-		if (!category)
-			return res
-				.status(400)
-				.send({ status: false, msg: "category must be present" });
+		// let { title, body, authorId, category } = req.body;
+		let requiredFields = ["title", "body", "authorId", "category"];
+		for (field of requiredFields) {
+			if (!req.body[field])
+				return res
+					.status(400)
+					.send({ status: false, msg: `Please provide ${field}` });
+		}
 	} catch (error) {
 		res.status(500).send({ status: false, msg: error.message });
 	}
@@ -34,38 +21,22 @@ const createBlogValidation = async function (req, res, next) {
 // This validation is used for creating and updating blog. For creating blog this comes after the createBlogValidation function. Below function checks the field present in the body has proper value type or not, with the help of validation functions present in the validator file
 const BlogValidation = async function (req, res, next) {
 	try {
+		if (!validation.isValidRequestBody(req.body)) {
+			return res
+				.status(400)
+				.send({ status: false, msg: "Please provide blog's details" });
+		}
 		const requestBody = req.body;
-
-		// For keys present in req.query we check the length of its value and if its 0 then we throw an error saying please provide a value
-		for (keys of Object.keys(req.body)) {
-			if (req.body[keys].length === 0)
-				return res
-					.status(400)
-					.send({ status: false, msg: `Please provide ${keys}` });
+		if (!requestBody.category) {
+		return	res
+				.status(400)
+				.send({ status: false, msg: "Please provide category" });
 		}
-
-		// Checking the title from req.body is a valid and non-empty string
-		if (requestBody.title) {
-			if (!validation.isValidString(requestBody.title))
-				return res
-					.status(400)
-					.send({ status: false, msg: "title must contain letters" });
-		}
-
-		// Checking the body from req.body is a valid and non-empty string
-		if (requestBody.body) {
-			if (!validation.isValidString(requestBody.body))
-				return res
-					.status(400)
-					.send({ status: false, msg: "body must contain letters" });
-		}
-
-		// Checking the category from req.body is a valid and non-empty string
-		if (requestBody.category) {
-			if (!validation.isValidString(requestBody.category))
-				return res
-					.status(400)
-					.send({ status: false, msg: "category must contain letters" });
+		// Validation for the mentioned
+		let fields = ["title", "body","category"];
+		for (field of fields) {
+			if (!validation.isValidString(requestBody[field]))
+				return res.status(400).send({ status: false, msg: `Invalid ${field}` });
 		}
 
 		// Validation of tags
@@ -155,10 +126,6 @@ const BlogValidationFromQuery = async function (req, res, next) {
 		// Destructuring from the req.query
 		let { authorId, category, tags, subcategory, unpublished } = req.query;
 
-		if (Object.keys(req.query).length == 0)
-			return res
-				.status(400)
-				.send({ status: false, msg: "Please provide a filter" });
 		// Creating an array of keys we expect to get from the req.query
 		const queryArray = [
 			"authorId",
@@ -239,8 +206,8 @@ const BlogValidationFromQuery = async function (req, res, next) {
 		}
 
 		// Checks whether unpublished is a valid string or not and converting to Boolean
-		unpublished = unpublished.trim();
 		if (unpublished) {
+			unpublished = unpublished.trim();
 			if (!validation.isValidString(unpublished)) {
 				return res
 					.status(400)
@@ -251,12 +218,10 @@ const BlogValidationFromQuery = async function (req, res, next) {
 			} else if (unpublished == "true") {
 				unpublished = false;
 			} else {
-				return res
-					.status(400)
-					.send({
-						status: false,
-						msg: "Please provide either true or false for unpublished",
-					});
+				return res.status(400).send({
+					status: false,
+					msg: "Please provide either true or false for unpublished",
+				});
 			}
 			dynamicObj.isPublished = unpublished;
 		}

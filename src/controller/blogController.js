@@ -1,4 +1,3 @@
-const { findById } = require("../models/authorModel");
 const blogModel = require("../models/blogModel");
 
 // Function for creating a blog
@@ -20,6 +19,7 @@ const getBlogs = async function (req, res) {
 		const filterObj = req.modifiedQuery;
 		filterObj.isDeleted = false;
 		filterObj.isPublished = true;
+
 		// Finding blogs and populating it
 		const allBlogs = await blogModel.find(filterObj).populate("authorId");
 		if (allBlogs.length === 0) {
@@ -45,7 +45,7 @@ const updateBlog = async function (req, res) {
 		//Creating a dynamic object for storing key and value pairs incoming from body
 		let obj = {};
 
-		const ifPublished = await findById(blogId);
+		const ifPublished = await blogModel.findById(blogId);
 		if (ifPublished.isPublished === false) {
 			obj.isPublished = true;
 			obj.publishedAt = new Date();
@@ -55,7 +55,12 @@ const updateBlog = async function (req, res) {
 
 		if (updateData.title) obj.title = updateData.title;
 		if (updateData.body) obj.body = updateData.body;
-		if (updateData.tags) obj["$addToSet"]["tags"] = [...updateData.tags];
+		if (updateData.category) obj.category = updateData.category;
+		if (updateData.tags) {
+			obj["$addToSet"]["tags"] = [...updateData.tags];
+		} else {
+			res.status(400).send({ status: false, msg: "tags must be present" });
+		}
 		if (updateData.subcategory)
 			obj["$addToSet"]["subcategory"] = { $each: [...updateData.subcategory] };
 
@@ -101,8 +106,14 @@ const deleteFromQuery = async function (req, res) {
 	try {
 		// Incoming modifiedQuery object from middleware in req.modifiedQuery is stored in a new object data. We are also setting isDeleted false and isPublished false for getting those blogs
 		let data = req.modifiedQuery;
+		
+		if (Object.keys(req.modifiedQuery).length == 0)
+		return res
+		.status(400)
+		.send({ status: false, msg: "Please provide a filter" });
+		
 		data.isDeleted = false;
-
+		
 		// If authorId is present in query params we are checking if the authorId is matching with the one present in the token
 		if (data.authorId) {
 			if (data.authorId !== req["x-api-key"].authorId)

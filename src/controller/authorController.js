@@ -5,35 +5,35 @@ const validation = require("../validators/validator");
 // Function for creating author
 const createAuthor = async function (req, res) {
 	try {
-		// Destructuring from req.body
-		let { fname, lname, title, email, password } = req.body;
-
-		/// Validation Starts
 		if (!validation.isValidRequestBody(req.body)) {
 			return res
 				.status(400)
 				.send({ status: false, msg: "Please provide author's detail" });
 		}
+		// Destructuring from req.body
+		let { fname, lname, title, email, password } = req.body;
+
+		let requiredFields = ["fname", "lname", "title", "email", "password"];
+		for (field of requiredFields) {
+			if (!req["body"].hasOwnProperty(field))
+				return res
+					.status(400)
+					.send({ status: false, msg: `Please provide ${field}` });
+		}
 
 		// Validating if the first name is present and type is string or not
-		if (!fname)
-			return res.status(400).send({ status: false, msg: "fname required" });
 		if (!validation.isValidString(fname))
 			return res
 				.status(400)
 				.send({ status: false, msg: "fname must contain letters" });
 
 		// Validating if the last name is present and type is string or not
-		if (!lname)
-			return res.status(400).send({ status: false, msg: "lname required" });
 		if (!validation.isValidString(lname))
 			return res
 				.status(400)
 				.send({ status: false, msg: "lname must contain letters only" });
 
 		// Validating if the title is present and type is string or not. Also if the title is among the enumerated values or not
-		if (!title)
-			return res.status(400).send({ status: false, msg: "title required" });
 		if (!validation.isValidTitle(title))
 			return res.status(400).send({
 				status: false,
@@ -41,14 +41,6 @@ const createAuthor = async function (req, res) {
 			});
 
 		// Validating if the email is present or not and is a valid email or not
-		if (!email)
-			return res
-				.status(400)
-				.send({ status: false, msg: "email must be present" });
-		if (!validation.isValidString(email))
-			return res
-				.status(400)
-				.send({ status: false, msg: "email must contain letters only" });
 		email = email.trim();
 		if (!validation.isValidEmail(email))
 			return res.status(400).send({ status: false, msg: "Invalid emailID" });
@@ -59,14 +51,6 @@ const createAuthor = async function (req, res) {
 				.send({ status: false, msg: "email ID already exist" });
 
 		// Validating if the password is present or not and is a strong password
-		if (!password)
-			return res
-				.status(400)
-				.send({ status: false, msg: "password must be present" });
-		if (!validation.isValidString(password))
-			return res
-				.status(400)
-				.send({ status: false, msg: "password must contain letters only" });
 		password = password.trim();
 		if (password.length < 8 || password.length > 19)
 			return res.status(400).send({
@@ -78,8 +62,6 @@ const createAuthor = async function (req, res) {
 				status: false,
 				msg: "Password must contain uppercases,lowercase,special characters and numerics.",
 			});
-
-		//// Validation Ends
 
 		// After validating we are creating a new author
 		const newAuthor = await authorModel.create(req.body);
@@ -96,6 +78,11 @@ const createAuthor = async function (req, res) {
 // Function for author login and token generation
 const authorLogin = async function (req, res) {
 	try {
+		if (!validation.isValidRequestBody(req.body)) {
+			return res
+				.status(400)
+				.send({ status: false, msg: "Please provide author's detail" });
+		}
 		let { email, password } = req.body;
 		const secretkey = "plutoniumFunctionup$%(())()*)+/";
 
@@ -117,10 +104,6 @@ const authorLogin = async function (req, res) {
 			return res
 				.status(400)
 				.send({ status: false, msg: "Password must be present" });
-		if (!validation.isValidString(password))
-			return res
-				.status(400)
-				.send({ status: false, msg: "password must contain letters only" });
 
 		// Creating a dynamic object containing keys email and password with values from the body
 		obj = { email: email, password: password };

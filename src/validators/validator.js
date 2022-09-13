@@ -8,9 +8,7 @@ const isValidObjectId = function (data) {
 
 // To check whether the input data is string or not after trimming
 const isValidString = function (data) {
-	if (typeof data != "string" || data.trim().length == 0) {
-		return false;
-	}
+	if (typeof data != "string" || data.trim().length == 0) return false;
 	return true;
 };
 
@@ -40,11 +38,10 @@ const isValidArray = function (data) {
 		data.length == 0 ||
 		data.includes(undefined) ||
 		data.filter((x) => x.trim().length > 0).length == 0
-		) {
-			return false;
-		}
-		return true;
-	};
+	)
+		return false;
+	return true;
+};
 
 // To convert the input into an array
 const makeArray = function (data) {
@@ -65,9 +62,9 @@ const flattenArray = function (data) {
 };
 
 // Check for valid request body
-const isValidRequestBody = function(data){
-    return Object.keys(data).length!=0
-}
+const isValidRequestBody = function (data) {
+	return Object.keys(data).length != 0;
+};
 
 module.exports = {
 	isValidEmail,

@@ -13,7 +13,7 @@ const userAuthentication = async function (req, res, next) {
 				.send({ status: false, msg: "Please provide a token" });
 		}
 		let decodedToken = jwt.verify(token, secretkey, (err, result) => {
-			if (err) return res.status(401).send(err.message);
+			if (err) return res.status(401).send({ status: false, msg: err.message });
 			req["x-api-key"] = result;
 			next();
 		});
@@ -43,11 +43,11 @@ const userAuthorisation = async function (req, res, next) {
 						status: false,
 						msg: "Unauthorised",
 					});
-			} else
+			}
 			// If user is authorised but no blogs are found
+			else
 				return res.status(404).send({ status: false, msg: "Blog Not Found" });
 		}
-
 
 		// If authorId is present in requestBody
 		let authorIdFromBody = req.body.authorId;
@@ -67,7 +67,7 @@ const userAuthorisation = async function (req, res, next) {
 
 		next();
 	} catch (error) {
-		res.status(500).send({ status: false, msg: error.message });
+		res.status(500).send({ status: false, msg: error });
 	}
 };
 

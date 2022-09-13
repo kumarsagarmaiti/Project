@@ -12,7 +12,7 @@ router.post("/authors", authorController.createAuthor);
 router.post("/login", authorController.authorLogin);
 router.post(
 	"/blogs",
-	authUser.userAuthorisation, // User authorisation 
+	authUser.userAuthorisation, // User authorisation
 	BlogValidation.createBlogValidation, // Middleware for checking required parameters in req.body
 	BlogValidation.BlogValidation, // Validation for data from req.body
 	blogController.createBlog // Creating a new blog
