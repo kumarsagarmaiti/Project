@@ -1,10 +1,12 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const multer=require("multer")
 const app = express();
 const route = require("./routes/route");
 
 app.use(bodyParser.json());
+app.use(multer().any())
 
 mongoose
   .connect(
@@ -20,6 +22,6 @@ mongoose
 
 app.use("/", route);
 
-app.listen(3000, () => {
-  console.log("Express app running on server:" + 3000);
+app.listen(3001, () => {
+  console.log("Express app running on server:" + 3001);
 });
