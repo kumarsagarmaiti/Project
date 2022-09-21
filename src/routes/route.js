@@ -3,6 +3,9 @@ const router = express.Router();
 
 const userController = require("../controllers/userController");
 const bookController = require("../controllers/bookController");
+const userAuth=require("../middleware/auth")
+
+router.use("/books",userAuth.authenticate)
 
 router.get("/test-me", function (req, res) {
 	res.send("test api");
@@ -10,6 +13,6 @@ router.get("/test-me", function (req, res) {
 
 router.post("/register", userController.createUser);
 router.post("/login", userController.userLogin);
-router.post("/books", bookController.createBook);
+router.post("/books",userAuth.authorization, bookController.createBook);
 
 module.exports = router;

@@ -100,6 +100,7 @@ const createUser = async function (req, res) {
 const userLogin = async function (req, res) {
 	try {
 		const { email, password } = req.body;
+		
 		if (Object.keys(req.body).length === 0)
 			return res
 				.status(400)
@@ -127,12 +128,12 @@ const userLogin = async function (req, res) {
 				.status(401)
 				.send({ status: false, message: "Invalid Credentials" });
 
-		const secretMessage = "Group43DKK";
+		const secretMessage = "kashish,divyanshu,sagar";
 
 		const token = jwt.sign(
 			{ userId: existingUser._id.toString() },
 			secretMessage,
-			{ expiresIn: "1800s" }
+			{ expiresIn: "180s" }
 		);
 
 		let decodedToken = jwt.verify(token, secretMessage);
