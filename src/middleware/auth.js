@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const ObjectId=mongoose.Types.ObjectId
 // const blogModel = require("../model/blogModels");
 const userModel = require("../models/userModel");
+const ObjectId = mongoose.Types.ObjectId;
 
 // --------------Authentication------------
 
@@ -14,21 +14,15 @@ const authenticate = async function (req, res, next) {
 				.status(400)
 				.send({ status: false, msg: "missing a mandatory token😒" });
 
-        const secretMessage = "kashish,divyanshu,sagar";
+		const secretMessage = "kashish,divyanshu,sagar";
 
-		let decodedToken = jwt.verify(
-			token,
-			secretMessage,
-			(err, decode) => {
-				if (err) {
-					return res
-						.status(401)
-						.send({ status: false, msg:err });
-				}
-				req.decodedtoken = decode;
-				next();
+		let decodedToken = jwt.verify(token, secretMessage, (err, decode) => {
+			if (err) {
+				return res.status(401).send({ status: false, msg: err });
 			}
-		);
+			req.decodedtoken = decode;
+			next();
+		});
 	} catch (err) {
 		return res.status(500).send({ status: false, msg: err.messge });
 	}
@@ -41,22 +35,20 @@ const authorization = async function (req, res, next) {
 		let userId = req.decodedtoken.userId;
 
 		let userIdbody = req.body.userId;
+		if(!userIdbody) return res.status(400).send({status:false,message:"UserID missing"})
 		if (!ObjectId.isValid(userIdbody)) {
 			return res
 				.status(400)
-				.send({ status: false, msg: "Please enter correct blogId Id" });
+				.send({ status: false, msg: "Please enter correct userId" });
 		}
-		console.log("1")
-		console.log("2")
-		let userdata = userModel.findById(userIdbody);
-		console.log(userdata["_id"].toString())
-		
-		console.log("3")
-		console.log("4")
+		let userdata = await userModel.findById(userIdbody);
+		if (!userdata)
+			return res.status(404).send({ status: false, message: "User not found" });
+
 		if (userId !== userIdbody)
 			return res
-				.status(400)
-				.send({ status: false, msg: "you are not authrized" });
+				.status(403)
+				.send({ status: false, msg: "You are not authorised" });
 		next();
 	} catch (error) {
 		res.status(500).send({ status: false, Error: error.message });
@@ -90,4 +82,4 @@ const authorization = async function (req, res, next) {
 // 	}
 // };
 
-module.exports={authenticate,authorization}
+module.exports = { authenticate, authorization };

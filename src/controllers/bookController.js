@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Book = require('../models/bookModel')
 
 const getbooks = async function (req, res) {
@@ -19,7 +20,7 @@ const getbooks = async function (req, res) {
             obj.subcategory = subcategory;
         }
 
-        let findbook = await book.find(obj).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 }).sort({ title: 1 });
+        let findbook = await Book.find(obj).select({ _id: 1, title: 1, excerpt: 1, userId: 1, category: 1, reviews: 1, releasedAt: 1 }).sort({ title: 1 });
         if (findbook.length == 0) {
             return res.status(404).send({ status: false, message: "book not found" })
         }
@@ -38,7 +39,7 @@ const booksbyparam = async function (req, res) {
             return res.status(400).send({ status: false, message: "bookId is mendatory" })
         }
         
-        let findbookId = await book.findById(bookId);
+        let findbookId = await Book.findById(bookId);
         if (!findbookId) {
             return res.status(404).send({ status: false, message: "book not found" })
         }
@@ -51,7 +52,7 @@ const booksbyparam = async function (req, res) {
     }
 }
 
-// module.exports = { getbooks }
+// module.exports = { getbooks };
 // module.exports = { booksbyparam }
 // const Book = require("../models/bookModel");
 const ObjectId = require("mongoose").Types.ObjectId;
@@ -129,13 +130,16 @@ const createBook = async function (req, res) {
 					status: false,
 					message: `${field} already present. Please provide an unique ${field}`,
 				});
-
-			const newBook = await Book.create(data);
-			res.status(201).send({ status: true, message: "Success", data: newBook });
 		}
+
+		const newBook = await Book.create(data);
+		res.status(201).send({ status: true, message: "Success", data: newBook });
 	} catch (error) {
 		res.status(500).send({ status: false, message: error.message });
 	}
 };
 
+
+module.exports = { booksbyparam }
 module.exports = { createBook };
+module.exports = { getbooks };
