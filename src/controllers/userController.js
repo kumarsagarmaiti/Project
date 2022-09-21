@@ -133,7 +133,7 @@ const userLogin = async function (req, res) {
 		const token = jwt.sign(
 			{ userId: existingUser._id.toString() },
 			secretMessage,
-			{ expiresIn: "180s" }
+			{ expiresIn: "20m" }
 		);
 
 		let decodedToken = jwt.verify(token, secretMessage);

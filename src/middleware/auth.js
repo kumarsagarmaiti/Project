@@ -18,9 +18,7 @@ const authenticate = async function (req, res, next) {
 
 		let decodedToken = jwt.verify(token, secretMessage, (err, decode) => {
 			if (err) {
-				return res
-					.status(401)
-					.send({ status: false, msg: "You have enter invalid token" });
+				return res.status(401).send({ status: false, msg: err });
 			}
 			req.decodedtoken = decode;
 			next();
@@ -36,7 +34,8 @@ const authorization = async function (req, res, next) {
 	try {
 		let userId = req.decodedtoken.userId;
 
-		let userIdbody = req.body;
+		let userIdbody = req.body.userId;
+		if(!userIdbody) return res.status(400).send({status:false,message:"UserID missing"})
 		if (!ObjectId.isValid(userIdbody)) {
 			return res
 				.status(400)
@@ -48,8 +47,8 @@ const authorization = async function (req, res, next) {
 
 		if (userId !== userIdbody)
 			return res
-				.status(400)
-				.send({ status: false, msg: "you are not authrized" });
+				.status(403)
+				.send({ status: false, msg: "You are not authorised" });
 		next();
 	} catch (error) {
 		res.status(500).send({ status: false, Error: error.message });

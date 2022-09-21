@@ -74,10 +74,10 @@ const createBook = async function (req, res) {
 					status: false,
 					message: `${field} already present. Please provide an unique ${field}`,
 				});
-
-			const newBook = await Book.create(data);
-			res.status(201).send({ status: true, message: "Success", data: newBook });
 		}
+
+		const newBook = await Book.create(data);
+		res.status(201).send({ status: true, message: "Success", data: newBook });
 	} catch (error) {
 		res.status(500).send({ status: false, message: error.message });
 	}
