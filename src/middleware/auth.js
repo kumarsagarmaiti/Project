@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 // const blogModel = require("../model/blogModels");
 const userModel = require("../models/userModel");
+const ObjectId = mongoose.Types.ObjectId;
 
 // --------------Authentication------------
 
@@ -13,21 +14,17 @@ const authenticate = async function (req, res, next) {
 				.status(400)
 				.send({ status: false, msg: "missing a mandatory token😒" });
 
-        const secretMessage = "kashish,divyanshu,sagar";
+		const secretMessage = "kashish,divyanshu,sagar";
 
-		let decodedToken = jwt.verify(
-			token,
-			secretMessage,
-			(err, decode) => {
-				if (err) {
-					return res
-						.status(401)
-						.send({ status: false, msg: "You have enter invalid token" });
-				}
-				req.decodedtoken = decode;
-				next();
+		let decodedToken = jwt.verify(token, secretMessage, (err, decode) => {
+			if (err) {
+				return res
+					.status(401)
+					.send({ status: false, msg: "You have enter invalid token" });
 			}
-		);
+			req.decodedtoken = decode;
+			next();
+		});
 	} catch (err) {
 		return res.status(500).send({ status: false, msg: err.messge });
 	}
@@ -40,13 +37,16 @@ const authorization = async function (req, res, next) {
 		let userId = req.decodedtoken.userId;
 
 		let userIdbody = req.body;
-		if (!mongoose.isValidObjectId(userIdbody)) {
+		if (!ObjectId.isValid(userIdbody)) {
 			return res
 				.status(400)
-				.send({ status: false, msg: "Please enter correct blogId Id" });
+				.send({ status: false, msg: "Please enter correct userId" });
 		}
-		let userdata = await userModel.findById(userIdbody).select({ _id: 1 });
-		if (userId !== userdata)
+		let userdata = await userModel.findById(userIdbody);
+		if (!userdata)
+			return res.status(404).send({ status: false, message: "User not found" });
+
+		if (userId !== userIdbody)
 			return res
 				.status(400)
 				.send({ status: false, msg: "you are not authrized" });
@@ -83,4 +83,4 @@ const authorization = async function (req, res, next) {
 // 	}
 // };
 
-module.exports={authenticate,authorization}
+module.exports = { authenticate, authorization };

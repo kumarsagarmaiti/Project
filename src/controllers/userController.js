@@ -99,12 +99,12 @@ const createUser = async function (req, res) {
 
 const userLogin = async function (req, res) {
 	try {
-		const { email, password } = req.body;
-		
 		if (Object.keys(req.body).length === 0)
 			return res
 				.status(400)
 				.send({ status: false, message: "Please Provide Email and Password" });
+
+		const { email, password } = req.body;
 
 		const requiredFields = ["email", "password"];
 
