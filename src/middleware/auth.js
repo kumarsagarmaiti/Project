@@ -12,7 +12,7 @@ const authenticate = async function (req, res, next) {
 		if (!token)
 			return res
 				.status(400)
-				.send({ status: false, msg: "missing a mandatory token😒" });
+				.send({ status: false, msg: "missing a mandatory token" });
 
 		const secretMessage = "kashish,divyanshu,sagar";
 
