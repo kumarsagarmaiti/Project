@@ -128,7 +128,7 @@ const getbooks = async function (req, res) {
 
 const booksbyparam = async function (req, res) {
 	try {
-		let bookId = req.param.bookId;
+		let bookId = req.params.bookId;
 
 		if (!bookId) {
 			return res
