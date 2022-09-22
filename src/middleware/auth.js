@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 // const blogModel = require("../model/blogModels");
 const userModel = require("../models/userModel");
+const bookModel = require("../models/bookModel");
 const ObjectId = mongoose.Types.ObjectId;
 
 // --------------Authentication------------
@@ -50,10 +51,25 @@ const authorization = async function (req, res, next) {
 				.status(403)
 				.send({ status: false, msg: "You are not authorised" });
 		next();
-	} catch (error) {
-		res.status(500).send({ status: false, Error: error.message });
+	} catch (err) {
+		res.status(500).send({ status: false, Error: err.message });
 	}
 };
+
+
+const authorization1 = async function(req,res,next){
+	try{
+		let userId = req.decodedtoken.userId;
+		let bookId = req.params.bookId;
+		let data = await bookModel.find({_id:bookId,userId:userId})
+		if(data.length ==0){
+			return res.status(403).send({ status: false, msg: "You are not authorised"})
+		}
+		next()
+	}catch(err){
+		res.status(500).send({ status: false, Error: err.message });
+	}
+}
 
 // //---------------------Special Authorization---------------------//
 // const specialAuthorization = async function (req, res, next) {
@@ -82,4 +98,4 @@ const authorization = async function (req, res, next) {
 // 	}
 // };
 
-module.exports = { authenticate, authorization };
+module.exports = { authenticate, authorization ,authorization1};
