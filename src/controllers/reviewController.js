@@ -45,7 +45,7 @@ const createReview = async function (req, res) {
 		if (!reviewedAtRegex.test(reviewData.reviewedAt))
 			return res.status(400).send({
 				status: false,
-				message: "Date should be in YYYY-MM-DD format",
+				message: "Date should be in YYYY-MM-DD format and a valid date",
 			});
 
 		if (reviewData.reviewedBy) {
