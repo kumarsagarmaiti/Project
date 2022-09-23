@@ -17,5 +17,5 @@ router.post("/books",userAuth.authorization, bookController.createBook);
 router.get("/books", bookController.getbooks);
 router.get("/books/:bookId", bookController.booksbyparam);
 router.delete("/books/:bookId",userAuth.authorization1, bookController.deletebook);
-
+router.put("/books/:bookId",bookController.updateBooks)
 module.exports = router;

@@ -63,6 +63,37 @@ const createBook = async function (req, res) {
 	}
 };
 
+//--------------------update/put book-------------------//
+
+const updateBooks = async function (req, res) {
+	try {
+	  let bookId = req.params.bookId;
+	  
+	  let books = await Book.findById(bookId);
+	  if (!books) {
+		return res.status(404).send("book doesn't exists");
+	  }
+	
+	  let bookData = req.body;
+	  const { title, excerpt, ISBN, releasedate } = bookData;
+	  if(title){
+		let isTitlePresent=await Book.find({title:title})
+		if(Object.keys(isTitlePresent).length !== 0) return res.status(400).send({status:false,message:"Title already present"})
+	  }
+	  if(ISBN){
+		let isISBNPresent=await Book.find({ISBN:ISBN})
+		if(Object.keys(isISBNPresent).length !== 0) return res.status(400).send({status:false,message:"ISBN is already present"})
+	  }
+  
+	  let updateBook = await Book.findOneAndUpdate(
+		{ _id: bookId }, { title: title, excerpt: excerpt, ISBN: ISBN, releasedate: new Date() },{new: true });
+	  res.status(201).send({ status: true, data: updateBook });
+	} catch (err) {
+	  res.status(500).send({ msg: err.message });
+	}
+  };
+//...................................getbooks........................................................
+
 const getbooks = async function (req, res) {
 	try {
 		let obj = { isDeleted: false };
@@ -146,4 +177,4 @@ const deletebook = async function (req, res) {
 	}
 }
 
-module.exports = { createBook, getbooks, booksbyparam, deletebook };
+module.exports = { createBook, getbooks, booksbyparam, deletebook,updateBooks };
