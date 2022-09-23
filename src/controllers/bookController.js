@@ -39,7 +39,7 @@ const createBook = async function (req, res) {
 
 		const releasedAtRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 		if (!releasedAtRegex.test(data.releasedAt))
-			return res.status(400).send({ status: false, message: "Invalid Release Date" });
+			return res.status(400).send({ status: false, message: "Date should be in YYYY-MM-DD format" });
 
 		if (!ObjectId.isValid(data.userId))
 			return res.status(400).send({ status: false, message: "Invalid ObjectId:UserId" });
@@ -129,15 +129,15 @@ const deletebook = async function (req, res) {
 			return res.status(400).send({ status: false, message: "bookId is mendatory" });
 		}
 
-		let findbook = await Book.findById(bookId)
+		let findbook = await Book.findById(bookId)  //findOne({_id:bookId,isDeleted:false})
 		if (!findbook) {
 			return res.status(404).send("blog document doesn't exist");
 		}
 
-		let data = findbook.isDeleted
-		if (data == true) {
-			return res.status(404).send("blog document already deleted");
-		}
+		// let data = findbook.isDeleted
+		// if (data == true) {
+		// 	return res.status(404).send("blog document already deleted");
+		// }
 
 		let markdelete = await Book.updateOne({ _id: bookId }, { isDeleted: true ,deletedAt:new Date}, { new: true })
 		res.status(200).send({ status: true, message: "success" })

@@ -3,7 +3,7 @@ const router = express.Router();
 
 const userController = require("../controllers/userController");
 const bookController = require("../controllers/bookController");
-const revieeController = require("../controllers/reviewController");
+const reviewController = require("../controllers/reviewController");
 const userAuth=require("../middleware/auth")
 
 router.use("/books",userAuth.authenticate)
@@ -18,6 +18,8 @@ router.post("/books",userAuth.authorization, bookController.createBook);
 router.get("/books", bookController.getbooks);
 router.get("/books/:bookId", bookController.booksbyparam);
 router.delete("/books/:bookId",userAuth.authorization1, bookController.deletebook);
-router.put("/books/:bookId/review/:reviewId",revieeController.putApi)
+router.post("/books/:bookId/review", reviewController.createReview);
+router.put("/books/:bookId/review/:reviewId",reviewController.putApi)
+
 
 module.exports = router;
