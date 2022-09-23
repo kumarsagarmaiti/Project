@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 // const blogModel = require("../model/blogModels");
-const userModel = require("../models/userModel");
-const bookModel = require("../models/bookModel");
+const User = require("../models/userModel");
+const Book = require("../models/bookModel");
 const ObjectId = mongoose.Types.ObjectId;
 
 // --------------Authentication------------
@@ -31,18 +31,19 @@ const authenticate = async function (req, res, next) {
 
 //---------------------Authorization---------------------
 
-const authorization = async function (req, res, next) {
+const authorizationFromBody = async function (req, res, next) {
 	try {
 		let userId = req.decodedtoken.userId;
 
 		let userIdbody = req.body.userId;
-		if(!userIdbody) return res.status(400).send({status:false,message:"UserID missing"})
+		if (!userIdbody)
+			return res.status(400).send({ status: false, message: "UserID missing" });
 		if (!ObjectId.isValid(userIdbody)) {
 			return res
 				.status(400)
 				.send({ status: false, msg: "Please enter correct userId" });
 		}
-		let userdata = await userModel.findById(userIdbody);
+		let userdata = await User.findById(userIdbody);
 		if (!userdata)
 			return res.status(404).send({ status: false, message: "User not found" });
 
@@ -56,46 +57,40 @@ const authorization = async function (req, res, next) {
 	}
 };
 
-
-const authorization1 = async function(req,res,next){
-	try{
+const authorizationFromParam = async function (req, res,next ) {
+	try {
 		let userId = req.decodedtoken.userId;
 		let bookId = req.params.bookId;
-		let data = await bookModel.find({_id:bookId,userId:userId})
-		if(data.length ==0){
-			return res.status(403).send({ status: false, msg: "You are not authorised"})
+
+		if (!bookId) {
+			return res
+				.status(400)
+				.send({ status: false, message: "bookId is mandatory" });
 		}
-		next()
-	}catch(err){
+
+		if (!ObjectId.isValid(bookId)) {
+			return res
+				.status(400)
+				.send({ status: false, msg: "Please enter correct bookId" });
+		}
+
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false }).lean();
+		if (!findBook) {
+			return res.status(404).send({ status: false, message: "Book not found" });
+		}
+
+		if (userId !== findBook.userId.toString())
+			return res
+				.status(403)
+				.send({ status: false, message: "You are not authorised" });
+		next();
+	} catch (err) {
 		res.status(500).send({ status: false, Error: err.message });
 	}
-}
+};
 
-// //---------------------Special Authorization---------------------//
-// const specialAuthorization = async function (req, res, next) {
-// 	try {
-// 		let data = req.query;
-
-// 		const token = req.headers["x-api-key"]; // we call headers with name x-api-key
-// 		if (!token)
-// 			res
-// 				.status(400)
-// 				.send({ status: false, msg: "missing a mandatory token😒" });
-// 		let decodedToken = jwt.verify(token, "kashish,divyanshu,sagar");
-// 		let authorId = decodedToken.userId;
-// 		const { category, tags, subcategory } = data;
-// 		let filter = { authorId, ...data };
-// 		let getRecord = await blogModel.findOne(filter);
-// 		let userId = getRecord.authorId.toString();
-// 		if (userId.toString() != authorId) {
-// 			return res
-// 				.status(403)
-// 				.send({ status: false, msg: "You are not authrized" });
-// 		}
-// 		next();
-// 	} catch (error) {
-// 		res.status(500).send({ status: false, Error: error.message });
-// 	}
-// };
-
-module.exports = { authenticate, authorization ,authorization1};
+module.exports = {
+	authenticate,
+	authorizationFromBody,
+	authorizationFromParam,
+};

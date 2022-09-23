@@ -1,4 +1,5 @@
 const Book = require("../models/bookModel");
+const Review = require("../models/reviewModel");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const isValidString = function (data) {
@@ -15,16 +16,29 @@ const createBook = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please Provide Data" });
 
-		const requiredFields = ["title", "excerpt", "userId", "ISBN", "category", "subcategory", "releasedAt",];
+		const requiredFields = [
+			"title",
+			"excerpt",
+			"userId",
+			"ISBN",
+			"category",
+			"subcategory",
+			"releasedAt",
+		];
 
 		for (field of requiredFields) {
 			if (!data[field])
-				return res.status(400).send({ status: false, message: `${field} is missing.` });
+				return res
+					.status(400)
+					.send({ status: false, message: `${field} is missing.` });
 		}
 
 		for (field of requiredFields) {
 			if (!isValidString(data[field]))
-				return res.status(400).send({ status: false, message: `${field} must contain characters.`, });
+				return res.status(400).send({
+					status: false,
+					message: `${field} must contain characters.`,
+				});
 		}
 
 		const ISBNregex =
@@ -34,15 +48,23 @@ const createBook = async function (req, res) {
 
 		if (data.reviews) {
 			if (typeof data.reviews !== "number")
-				return res.status(400).send({ status: false, message: "Reviews type invalid, should be in number.", });
+				return res.status(400).send({
+					status: false,
+					message: "Reviews type invalid, should be in number.",
+				});
 		}
 
 		const releasedAtRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 		if (!releasedAtRegex.test(data.releasedAt))
-			return res.status(400).send({ status: false, message: "Invalid Release Date" });
+			return res.status(400).send({
+				status: false,
+				message: "Date should be in YYYY-MM-DD format",
+			});
 
 		if (!ObjectId.isValid(data.userId))
-			return res.status(400).send({ status: false, message: "Invalid ObjectId:UserId" });
+			return res
+				.status(400)
+				.send({ status: false, message: "Invalid ObjectId:UserId" });
 
 		const uniqueFields = ["title", "ISBN"];
 		for (field of uniqueFields) {
@@ -63,6 +85,7 @@ const createBook = async function (req, res) {
 	}
 };
 
+<<<<<<< HEAD
 //--------------------update/put book-------------------//
 
 const updateBooks = async function (req, res) {
@@ -95,16 +118,35 @@ const updateBooks = async function (req, res) {
 //...................................getbooks........................................................
 
 const getbooks = async function (req, res) {
+=======
+const getBooks = async function (req, res) {
+>>>>>>> ee4cd0f583625360cc99fd5d651f88eca3d81624
 	try {
+		for (keys of Object.keys(req.query)) {
+			if (req.query[keys].length === 0)
+				return res
+					.status(400)
+					.send({ status: false, msg: `Please provide ${keys}` });
+		}
+
+		const queryArray = ["userId", "category", "subcategory"];
+		for (key in req.query) {
+			if (!queryArray.includes(key))
+				return res.status(400).send({
+					status: false,
+					msg: `Query parameters can only be among these: ${queryArray.join(
+						", "
+					)}`,
+				});
+		}
+
+		let { userId, category, subcategory } = req.query;
+
 		let obj = { isDeleted: false };
 
-		// let userId = req.query.userId;
-		// let category = req.query.category;
-		// let subcategory = req.query.subcategory;
-
-		let { userId, category, subcategory } = req.query
-
 		if (userId) {
+			if (!ObjectId.isValid(userId) || userId.trim().length === 0)
+				return res.send({ status: false, message: "Invalid userId" });
 			obj.userId = userId;
 		}
 		if (category) {
@@ -114,11 +156,21 @@ const getbooks = async function (req, res) {
 			obj.subcategory = subcategory;
 		}
 
-		let findbook = await Book.find(obj).select({_id: 1,title: 1,excerpt: 1,userId: 1,category: 1,reviews: 1,releasedAt: 1,})
+		let findbook = await Book.find(obj)
+			.select({
+				_id: 1,
+				title: 1,
+				excerpt: 1,
+				userId: 1,
+				category: 1,
+				reviews: 1,
+				releasedAt: 1,
+			})
 			.sort({ title: 1 });
-		if (findbook.length == 0) {
-			return res.status(404).send({ status: false, message: "book not found" });
+		if (findbook.length === 0) {
+			return res.status(404).send({ status: false, message: "No books found" });
 		}
+
 		return res
 			.status(200)
 			.send({ status: true, message: "Success", data: findbook });
@@ -129,52 +181,59 @@ const getbooks = async function (req, res) {
 	}
 };
 
-const booksbyparam = async function (req, res) {
+const booksByParam = async function (req, res) {
 	try {
 		let bookId = req.params.bookId;
-
 		if (!bookId) {
-			return res.status(400).send({ status: false, message: "bookId is mendatory" });
+			return res
+				.status(400)
+				.send({ status: false, message: "bookId is mandatory" });
 		}
 
-		let findbookId = await Book.findOne({ _id: bookId, isDeleted: false });
-		if (!findbookId) {
-			return res.status(404).send({ status: false, message: "book not found" });
+		if (!ObjectId.isValid(bookId)) {
+			return res
+				.status(400)
+				.send({ status: false, msg: "Please enter correct bookId" });
 		}
 
-		return res.status(200).send({ status: true, message: "Success", data: findbookId });
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false })
+			.select({ ISBN: 0, __v: 0 })
+			.lean();
+		if (!findBook) {
+			return res.status(404).send({ status: false, message: "Book not found" });
+		}
+		const reviewsData = await Review.find({ bookId });
+		findBook.reviewsData = reviewsData;
+
+		return res
+			.status(200)
+			.send({ status: true, message: "Success", data: findBook });
 	} catch (err) {
-		return res.status(500).send({ status: false, message: "Error", error: err.message });
+		return res
+			.status(500)
+			.send({ status: false, message: "Error", error: err.message });
 	}
 };
 
-// ### DELETE /books/:bookId
-// - Check if the bookId exists and is not deleted. If it does, mark it deleted and return an HTTP status 200 with a response body with status and message.
-// - If the book document doesn't exist then return an HTTP status of 404 with a body like [this](#error-response-structure)
-
-const deletebook = async function (req, res) {
+const deleteBook = async function (req, res) {
 	try {
-		
 		let bookId = req.params.bookId;
-		if (!bookId) {
-			return res.status(400).send({ status: false, message: "bookId is mendatory" });
-		}
 
-		let findbook = await Book.findById(bookId)
-		if (!findbook) {
-			return res.status(404).send("blog document doesn't exist");
-		}
-
-		let data = findbook.isDeleted
-		if (data == true) {
-			return res.status(404).send("blog document already deleted");
-		}
-
-		let markdelete = await Book.updateOne({ _id: bookId }, { isDeleted: true ,deletedAt:new Date}, { new: true })
-		res.status(200).send({ status: true, message: "success" })
+		let markdelete = await Book.findByIdAndUpdate(
+			bookId,
+			{ isDeleted: true, deletedAt: new Date() },
+			{ new: true }
+		);
+		res.status(200).send({ status: true, message: "Book successfully deleted" });
 	} catch (err) {
-		res.status(500).send({ status: false, message: "Error", error: err.message });
+		res
+			.status(500)
+			.send({ status: false, message: "Error", error: err.message });
 	}
-}
+};
 
+<<<<<<< HEAD
 module.exports = { createBook, getbooks, booksbyparam, deletebook,updateBooks };
+=======
+module.exports = { createBook, getBooks, booksByParam, deleteBook };
+>>>>>>> ee4cd0f583625360cc99fd5d651f88eca3d81624
