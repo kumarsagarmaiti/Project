@@ -39,7 +39,7 @@ const createBook = async function (req, res) {
 
 		const releasedAtRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
 		if (!releasedAtRegex.test(data.releasedAt))
-			return res.status(400).send({ status: false, message: "Invalid Release Date" });
+			return res.status(400).send({ status: false, message: "Date should be in YYYY-MM-DD format" });
 
 		if (!ObjectId.isValid(data.userId))
 			return res.status(400).send({ status: false, message: "Invalid ObjectId:UserId" });
