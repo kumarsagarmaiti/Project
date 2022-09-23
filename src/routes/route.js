@@ -4,7 +4,9 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const bookController = require("../controllers/bookController");
 const reviewController = require("../controllers/reviewController");
-const userAuth = require("../middleware/auth");
+const userAuth=require("../middleware/auth")
+
+router.use("/books",userAuth.authenticate)
 
 router.post("/register", userController.createUser);
 router.post("/login", userController.userLogin);
