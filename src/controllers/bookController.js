@@ -1,4 +1,5 @@
 const Book = require("../models/bookModel");
+const Review = require("../models/reviewModel");
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const isValidString = function (data) {
@@ -148,21 +149,30 @@ const getBooks = async function (req, res) {
 const booksByParam = async function (req, res) {
 	try {
 		let bookId = req.params.bookId;
-
 		if (!bookId) {
 			return res
 				.status(400)
-				.send({ status: false, message: "bookId is mendatory" });
+				.send({ status: false, message: "bookId is mandatory" });
 		}
 
-		let findbookId = await Book.findOne({ _id: bookId, isDeleted: false });
-		if (!findbookId) {
-			return res.status(404).send({ status: false, message: "book not found" });
+		if (!ObjectId.isValid(bookId)) {
+			return res
+				.status(400)
+				.send({ status: false, msg: "Please enter correct bookId" });
 		}
+
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false })
+			.select({ ISBN: 0, __v: 0 })
+			.lean();
+		if (!findBook) {
+			return res.status(404).send({ status: false, message: "Book not found" });
+		}
+		const reviewsData = await Review.find({ bookId });
+		findBook.reviewsData = reviewsData;
 
 		return res
 			.status(200)
-			.send({ status: true, message: "Success", data: findbookId });
+			.send({ status: true, message: "Success", data: findBook });
 	} catch (err) {
 		return res
 			.status(500)
@@ -173,28 +183,13 @@ const booksByParam = async function (req, res) {
 const deleteBook = async function (req, res) {
 	try {
 		let bookId = req.params.bookId;
-		if (!bookId) {
-			return res
-				.status(400)
-				.send({ status: false, message: "bookId is mendatory" });
-		}
 
-		let findbook = await Book.findById(bookId); //findOne({_id:bookId,isDeleted:false})
-		if (!findbook) {
-			return res.status(404).send("blog document doesn't exist");
-		}
-
-		// let data = findbook.isDeleted
-		// if (data == true) {
-		// 	return res.status(404).send("blog document already deleted");
-		// }
-
-		let markdelete = await Book.updateOne(
-			{ _id: bookId },
+		let markdelete = await Book.findByIdAndUpdate(
+			bookId,
 			{ isDeleted: true, deletedAt: new Date() },
 			{ new: true }
 		);
-		res.status(200).send({ status: true, message: "success" });
+		res.status(200).send({ status: true, message: "Book successfully deleted" });
 	} catch (err) {
 		res
 			.status(500)

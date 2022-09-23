@@ -1,8 +1,8 @@
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 // const blogModel = require("../model/blogModels");
-const userModel = require("../models/userModel");
-const bookModel = require("../models/bookModel");
+const User = require("../models/userModel");
+const Book = require("../models/bookModel");
 const ObjectId = mongoose.Types.ObjectId;
 
 // --------------Authentication------------
@@ -43,7 +43,7 @@ const authorizationFromBody = async function (req, res, next) {
 				.status(400)
 				.send({ status: false, msg: "Please enter correct userId" });
 		}
-		let userdata = await userModel.findById(userIdbody);
+		let userdata = await User.findById(userIdbody);
 		if (!userdata)
 			return res.status(404).send({ status: false, message: "User not found" });
 
@@ -57,10 +57,16 @@ const authorizationFromBody = async function (req, res, next) {
 	}
 };
 
-const authorizationFromParam = async function (req, res, next) {
+const authorizationFromParam = async function (req, res,next ) {
 	try {
 		let userId = req.decodedtoken.userId;
 		let bookId = req.params.bookId;
+
+		if (!bookId) {
+			return res
+				.status(400)
+				.send({ status: false, message: "bookId is mandatory" });
+		}
 
 		if (!ObjectId.isValid(bookId)) {
 			return res
@@ -68,12 +74,12 @@ const authorizationFromParam = async function (req, res, next) {
 				.send({ status: false, msg: "Please enter correct bookId" });
 		}
 
-		let findBook = await bookModel.findById(bookId);
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false }).lean();
 		if (!findBook) {
-			return res.status(404).send({ status: false, msg: "Book Not Found" });
+			return res.status(404).send({ status: false, message: "Book not found" });
 		}
 
-		if (userId !== findBook.userId)
+		if (userId !== findBook.userId.toString())
 			return res
 				.status(403)
 				.send({ status: false, message: "You are not authorised" });
