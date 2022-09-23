@@ -19,6 +19,13 @@ const createReview = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Invalid bookId in url" });
 
+		const bookExists = await Book.findOne({
+			isDeleted: false,
+			_id: reviewData.bookId,
+		}).lean();
+		if (!bookExists)
+			return res.status(404).send({ status: false, message: "Book not found" });
+
 		const reviewData = req.body;
 		if (Object.keys(reviewData).length === 0)
 			return res
@@ -63,7 +70,7 @@ const createReview = async function (req, res) {
 		}
 
 		if (typeof reviewData.rating === "number") {
-			if (reviewData.rating > 5 || 1 > reviewData.rating) {
+			if (reviewData.rating >= 5 || 1 >= reviewData.rating) {
 				return res
 					.status(400)
 					.send({ status: false, message: "Ratings  be between 1 to 5" });
@@ -77,13 +84,6 @@ const createReview = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Ratings should be in number" });
 		}
-
-		const bookExists = await Book.findOne({
-			isDeleted: false,
-			_id: reviewData.bookId,
-		}).lean();
-		if (!bookExists)
-			return res.status(404).send({ status: false, message: "Book not found" });
 
 		reviewData.reviewedAt = new Date();
 		const createNewReview = await Review.create(reviewData);
@@ -115,8 +115,10 @@ const updateReview = async function (req, res) {
 					.status(400)
 					.send({ status: false, message: `Invalid ${key}` });
 
-		let findBookId = await Book.findOne({ _id: bookId, isDeleted: false });
-		if (!findBookId) {
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false })
+			.select({ ISBN: 0, __v: 0 })
+			.lean();
+		if (!findBook) {
 			return res.status(404).send({ status: false, message: "Book not found" });
 		}
 
@@ -130,12 +132,13 @@ const updateReview = async function (req, res) {
 				.send({ status: false, message: "Review not found" });
 		}
 
-		let { reviewedBy, rating, review } = req.body;
 		if (Object.keys(req.body).length === 0) {
 			return res
 				.status(404)
 				.send({ status: false, message: "request body can't be empty" });
 		}
+
+		let { reviewedBy, rating, review } = req.body;
 
 		obj = { reviewedAt: new Date() };
 		if (reviewedBy) {
@@ -148,7 +151,7 @@ const updateReview = async function (req, res) {
 
 		if (rating) {
 			if (typeof rating === "number") {
-				if (rating > 5 || 1 > rating) {
+				if (rating >= 5 || 1 >= rating) {
 					return res
 						.status(400)
 						.send({ status: false, message: "Ratings  be between 1 to 5" });
@@ -175,12 +178,6 @@ const updateReview = async function (req, res) {
 
 		let updatedReview = await Review.updateOne({ _id: reviewId }, obj);
 
-		let findBook = await Book.findOne({ _id: bookId, isDeleted: false })
-			.select({ ISBN: 0, __v: 0 })
-			.lean();
-		if (!findBook) {
-			return res.status(404).send({ status: false, message: "Book not found" });
-		}
 		const reviewsData = await Review.find({ bookId });
 		findBook.reviewsData = reviewsData;
 
