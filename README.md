@@ -96,7 +96,7 @@
 ### PUT /books/:bookId
 - Update a book by changing its
   - title
-  - excerpt
+  - excerpt 
   - release date
   - ISBN
 - Make sure the unique constraints are not violated when making the update

@@ -58,7 +58,7 @@ const createBook = async function (req, res) {
 		if (!releasedAtRegex.test(data.releasedAt))
 			return res.status(400).send({
 				status: false,
-				message: "Date should be in YYYY-MM-DD format",
+				message: "Date should be in YYYY-MM-DD format and a valid date",
 			});
 
 		if (!ObjectId.isValid(data.userId))
@@ -85,42 +85,7 @@ const createBook = async function (req, res) {
 	}
 };
 
-<<<<<<< HEAD
-//--------------------update/put book-------------------//
-
-const updateBooks = async function (req, res) {
-	try {
-	  let bookId = req.params.bookId;
-	  
-	  let books = await Book.findById(bookId);
-	  if (!books) {
-		return res.status(404).send("book doesn't exists");
-	  }
-	
-	  let bookData = req.body;
-	  const { title, excerpt, ISBN, releasedate } = bookData;
-	  if(title){
-		let isTitlePresent=await Book.find({title:title})
-		if(Object.keys(isTitlePresent).length !== 0) return res.status(400).send({status:false,message:"Title already present"})
-	  }
-	  if(ISBN){
-		let isISBNPresent=await Book.find({ISBN:ISBN})
-		if(Object.keys(isISBNPresent).length !== 0) return res.status(400).send({status:false,message:"ISBN is already present"})
-	  }
-  
-	  let updateBook = await Book.findOneAndUpdate(
-		{ _id: bookId }, { title: title, excerpt: excerpt, ISBN: ISBN, releasedate: new Date() },{new: true });
-	  res.status(201).send({ status: true, data: updateBook });
-	} catch (err) {
-	  res.status(500).send({ msg: err.message });
-	}
-  };
-//...................................getbooks........................................................
-
-const getbooks = async function (req, res) {
-=======
 const getBooks = async function (req, res) {
->>>>>>> ee4cd0f583625360cc99fd5d651f88eca3d81624
 	try {
 		for (keys of Object.keys(req.query)) {
 			if (req.query[keys].length === 0)
@@ -215,16 +180,117 @@ const booksByParam = async function (req, res) {
 	}
 };
 
+const updateBooks = async function (req, res) {
+	try {
+		let bookId = req.params.bookId;
+
+		if (Object.keys(req.body).length === 0)
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide data in the body" });
+
+		let findBook = await Book.findById(bookId);
+		if (!findBook) {
+			return res.status(404).send("book doesn't exists");
+		}
+
+		let bookData = req.body;
+		const { title, excerpt, ISBN, releasedAt } = bookData;
+		const releaseDate = bookData["release date"];
+
+		const updatedFields = [
+			"title",
+			"excerpt",
+			"release date",
+			"ISBN",
+			"releasedAt",
+		];
+
+		for (key in bookData) {
+			if (!updatedFields.includes(key))
+				return res.status(400).send({
+					status: false,
+					message: `Updation fields can be only among these: ${updatedFields.join(
+						", "
+					)}`,
+				});
+		}
+
+		for (key of Object.keys(req.body)) {
+			if (!isValidString(req.body[key]))
+				return res
+					.status(400)
+					.send({ status: false, message: `Invalid ${key} format` });
+		}
+
+		if (title) {
+			let isTitlePresent = await Book.findOne({ title: title });
+			if (isTitlePresent)
+				return res
+					.status(400)
+					.send({ status: false, message: "Title already present" });
+		}
+		if (ISBN) {
+			let isISBNPresent = await Book.findOne({ ISBN: ISBN });
+			if (isISBNPresent)
+				return res
+					.status(400)
+					.send({ status: false, message: "ISBN is already present" });
+		}
+
+		if (excerpt) {
+			if (!isValidString(excerpt))
+				return res
+					.status(400)
+					.send({ status: false, message: "Invalid excerpt format" });
+		}
+
+		if (releasedAt) {
+			const releasedAtRegex =
+				/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+			if (!releasedAtRegex.test(releasedAt))
+				return res.status(400).send({
+					status: false,
+					message: "Date should be in YYYY-MM-DD format and a valid date",
+				});
+		}
+		if (releaseDate) {
+			const releasedAtRegex =
+				/([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
+			if (!releasedAtRegex.test(releaseDate))
+				return res.status(400).send({
+					status: false,
+					message: "Date should be in YYYY-MM-DD format and a valid date",
+				});
+			bookData.releasedAt = releaseDate;
+			delete bookData["release date"];
+		}
+
+		let updatedBook = await Book.findOneAndUpdate(
+			{ _id: bookId, isDeleted: false },
+			bookData,
+			{
+				new: true,
+			}
+		);
+
+		res.status(201).send({ status: true, data: updatedBook });
+	} catch (err) {
+		res.status(500).send({ msg: err.message });
+	}
+};
+
 const deleteBook = async function (req, res) {
 	try {
 		let bookId = req.params.bookId;
 
-		let markdelete = await Book.findByIdAndUpdate(
-			bookId,
-			{ isDeleted: true, deletedAt: new Date() },
-			{ new: true }
+		let markdelete = await Book.findOneAndUpdate(
+			{ _id: bookId, isDeleted: false },
+			{ isDeleted: true, deletedAt: new Date() }
 		);
-		res.status(200).send({ status: true, message: "Book successfully deleted" });
+		res
+			.status(200)
+			.send({ status: true, message: "Book successfully deleted" });
 	} catch (err) {
 		res
 			.status(500)
@@ -232,8 +298,10 @@ const deleteBook = async function (req, res) {
 	}
 };
 
-<<<<<<< HEAD
-module.exports = { createBook, getbooks, booksbyparam, deletebook,updateBooks };
-=======
-module.exports = { createBook, getBooks, booksByParam, deleteBook };
->>>>>>> ee4cd0f583625360cc99fd5d651f88eca3d81624
+module.exports = {
+	createBook,
+	getBooks,
+	booksByParam,
+	deleteBook,
+	updateBooks,
+};

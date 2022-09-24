@@ -10,13 +10,6 @@ const userAuth=require("../middleware/auth")
 //User API
 router.post("/register", userController.createUser);
 router.post("/login", userController.userLogin);
-<<<<<<< HEAD
-router.post("/books",userAuth.authorization, bookController.createBook);
-router.get("/books", bookController.getbooks);
-router.get("/books/:bookId", bookController.booksbyparam);
-router.delete("/books/:bookId",userAuth.authorization1, bookController.deletebook);
-router.put("/books/:bookId",bookController.updateBooks)
-=======
 
 //Book API
 router.post(
@@ -32,11 +25,12 @@ router.get(
 
 	bookController.booksByParam
 );
-// router.put(
-// 	"/books/:bookId",
-// 	userAuth.authorizationFromParam,
-// 	bookController.updateBooks
-// );
+router.put(
+	"/books/:bookId",
+	userAuth.authenticate,
+	userAuth.authorizationFromParam,
+	bookController.updateBooks
+);
 router.delete(
 	"/books/:bookId",
 	userAuth.authenticate,
@@ -47,6 +41,6 @@ router.delete(
 //Review API
 router.post("/books/:bookId/review", reviewController.createReview);
 router.put("/books/:bookId/review/:reviewId",reviewController.updateReview)
+router.delete("/books/:bookId/review/:reviewId",reviewController.deleteReview)
 
->>>>>>> ee4cd0f583625360cc99fd5d651f88eca3d81624
 module.exports = router;

@@ -189,4 +189,59 @@ const updateReview = async function (req, res) {
 	}
 };
 
-module.exports = { createReview, updateReview };
+const deleteReview = async function (req, res) {
+	try {
+		const requiredFields = ["bookId", "reviewId"];
+
+		for (field of requiredFields) {
+			if (!req.params.hasOwnProperty(field))
+				return res
+					.status(400)
+					.send({ status: false, message: `${field} is missing` });
+		}
+		for (field of requiredFields) {
+			if (!ObjectId.isValid(req.params[field]))
+				return res
+					.status(400)
+					.send({ status: false, message: `${field} is invalid objectId` });
+		}
+
+		let { bookId, reviewId } = req.params;
+
+		const isBookPresent = await Book.findOne({ _id: bookId, isDeleted: false });
+		if (!isBookPresent)
+			return res.status(404).send({ status: false, message: "No book found" });
+		const isReviewPresent = await Review.findOne({
+			_id: reviewId,
+			isDeleted: false,
+		});
+		if (!isReviewPresent)
+			return res
+				.status(404)
+				.send({ status: false, message: "No review found" });
+
+		if (bookId !== isReviewPresent.bookId.toString())
+			return res.status(400).send({
+				status: false,
+				message: "The review is not present for the given book",
+			});
+
+		const deleteReview = await Review.findByIdAndUpdate(reviewId, {
+			isDeleted: true,
+		});
+		const updateBook = await Book.findOneAndUpdate(
+			{ _id: bookId },
+			{ $inc: { reviews: -1 } },
+			{ new: true }
+		).lean();
+		const reviews = await Review.find({ bookId, isDeleted: false });
+		updateBook.reviewsData = reviews;
+		res
+			.status(200)
+			.send({ status: true, message: "Success", data: updateBook });
+	} catch (err) {
+		res.status(500).send({ status: false, message: err.message });
+	}
+};
+
+module.exports = { createReview, updateReview, deleteReview };
