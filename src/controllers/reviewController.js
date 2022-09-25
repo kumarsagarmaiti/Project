@@ -32,6 +32,22 @@ const createReview = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please give data" });
 
+		const acceptedFields = [
+			"bookId",
+			"reviewedBy",
+			"reviewedAt",
+			"rating",
+			"review",
+		];
+		for (key in req.body) {
+			if (!acceptedFields.includes(key)) {
+				return res.status(400).send({
+					status: false,
+					message: `Fields can be among these: ${acceptedFields.join(", ")}`,
+				});
+			}
+		}
+
 		const requiredFields = ["bookId", "reviewedAt", "rating"];
 		for (field of requiredFields) {
 			if (!reviewData[field])
@@ -138,6 +154,16 @@ const updateReview = async function (req, res) {
 			return res
 				.status(404)
 				.send({ status: false, message: "request body can't be empty" });
+		}
+
+		const acceptedFields = ["reviewedBy", "rating", "review"];
+		for (key in req.body) {
+			if (!acceptedFields.includes(key)) {
+				return res.status(400).send({
+					status: false,
+					message: `Fields can be among these: ${acceptedFields.join(", ")}`,
+				});
+			}
 		}
 
 		let { reviewedBy, rating, review } = req.body;

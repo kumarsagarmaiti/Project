@@ -26,6 +26,29 @@ const createBook = async function (req, res) {
 			"releasedAt",
 		];
 
+		const acceptedFields = [
+			"title",
+			"excerpt",
+			"userId",
+			"ISBN",
+			"category",
+			"subcategory",
+			"reviews",
+			"deletedAt",
+			"isDeleted",
+			"releasedAt",
+		];
+
+		for (key in req.body) {
+			if (!acceptedFields.includes(key))
+				return res.status(400).send({
+					status: false,
+					message: `Fields can only be among these: ${acceptedFields.join(
+						", "
+					)}`,
+				});
+		}
+
 		for (field of requiredFields) {
 			if (!data[field])
 				return res
@@ -203,7 +226,7 @@ const updateBooks = async function (req, res) {
 		const { title, excerpt, ISBN, releasedAt } = bookData;
 		const releaseDate = bookData["release date"];
 
-		const updatedFields = [
+		const updateFields = [
 			"title",
 			"excerpt",
 			"release date",
@@ -212,10 +235,10 @@ const updateBooks = async function (req, res) {
 		];
 
 		for (key in bookData) {
-			if (!updatedFields.includes(key))
+			if (!updateFields.includes(key))
 				return res.status(400).send({
 					status: false,
-					message: `Updation fields can be only among these: ${updatedFields.join(
+					message: `Updation fields can be only among these: ${updateFields.join(
 						", "
 					)}`,
 				});
