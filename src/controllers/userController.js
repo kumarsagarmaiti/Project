@@ -16,6 +16,22 @@ const createUser = async function (req, res) {
 				.send({ status: false, message: "Please Provide Data" });
 
 		const requiredFields = ["title", "name", "phone", "email", "password"];
+		const acceptedFields = [
+			"title",
+			"name",
+			"phone",
+			"email",
+			"password",
+			"address",
+		];
+
+		for (key in data) {
+			if (!acceptedFields.includes(key))
+				return res.status(400).send({
+					status: false,
+					message: `Fields must be among these: ${acceptedFields.join(", ")}`,
+				});
+		}
 
 		for (field of requiredFields) {
 			if (!data[field])
@@ -54,7 +70,7 @@ const createUser = async function (req, res) {
 
 		const passwordRegex =
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,15})/;
-		if (data.password.trim().length > 15 || data.password.trim().length < 8)
+		if (data.password.trim().length >= 15 || data.password.trim().length <= 8)
 			return res.status(400).send({
 				status: false,
 				message: "Password length should be between 8 to 15 characters",
@@ -115,6 +131,14 @@ const userLogin = async function (req, res) {
 					.send({ status: false, message: `${field} is missing.` });
 		}
 
+		for (field of requiredFields) {
+			if (!isValidString(req.body[field]))
+				return res.status(400).send({
+					status: false,
+					message: `${field} must contain characters.`,
+				});
+		}
+
 		const emailRegex = /^([a-z0-9_.]+@[a-z]+\.[a-z]{2,3})?$/;
 		if (!emailRegex.test(email))
 			return res.status(400).send({
@@ -122,7 +146,10 @@ const userLogin = async function (req, res) {
 				message: "Invalid Email",
 			});
 
-		const existingUser = await User.findOne({ email, password });
+		const existingUser = await User.findOne({
+			email: email,
+			password: password,
+		});
 		if (!existingUser)
 			return res
 				.status(401)

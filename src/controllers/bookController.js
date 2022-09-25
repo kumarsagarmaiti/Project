@@ -52,6 +52,10 @@ const createBook = async function (req, res) {
 					status: false,
 					message: "Reviews type invalid, should be in number.",
 				});
+			if (data.reviews % 1 !== 0)
+				return res
+					.status(400)
+					.send({ status: false, message: "Reviews can't be in decimals." });
 		}
 
 		const releasedAtRegex = /([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))/;
@@ -130,6 +134,7 @@ const getBooks = async function (req, res) {
 				category: 1,
 				reviews: 1,
 				releasedAt: 1,
+				__v: 0,
 			})
 			.sort({ title: 1 });
 		if (findbook.length === 0) {
@@ -167,7 +172,7 @@ const booksByParam = async function (req, res) {
 		if (!findBook) {
 			return res.status(404).send({ status: false, message: "Book not found" });
 		}
-		const reviewsData = await Review.find({ bookId });
+		const reviewsData = await Review.find({ bookId, isDeleted: false });
 		findBook.reviewsData = reviewsData;
 
 		return res

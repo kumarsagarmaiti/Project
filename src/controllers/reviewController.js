@@ -19,6 +19,7 @@ const createReview = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Invalid bookId in url" });
 
+		const reviewData = req.body;
 		const bookExists = await Book.findOne({
 			isDeleted: false,
 			_id: reviewData.bookId,
@@ -26,7 +27,6 @@ const createReview = async function (req, res) {
 		if (!bookExists)
 			return res.status(404).send({ status: false, message: "Book not found" });
 
-		const reviewData = req.body;
 		if (Object.keys(reviewData).length === 0)
 			return res
 				.status(400)
@@ -91,7 +91,9 @@ const createReview = async function (req, res) {
 			reviewData.bookId,
 			{ $inc: { reviews: 1 } },
 			{ new: true }
-		).lean();
+		)
+			.lean()
+			.select({ __v: 0 }); //.lean() function converts BSON type object to normal JS object
 		updateBookReview.reviewData = createNewReview;
 		return res
 			.status(201)
@@ -152,9 +154,10 @@ const updateReview = async function (req, res) {
 		if (rating) {
 			if (typeof rating === "number") {
 				if (rating >= 5 || 1 >= rating) {
-					return res
-						.status(400)
-						.send({ status: false, message: "Ratings  be between 1 to 5" });
+					return res.status(400).send({
+						status: false,
+						message: "Ratings should be between 1 to 5",
+					});
 				} else if (rating % 1 !== 0)
 					return res.status(400).send({
 						status: false,
@@ -230,7 +233,7 @@ const deleteReview = async function (req, res) {
 			isDeleted: true,
 		});
 		const updateBook = await Book.findOneAndUpdate(
-			{ _id: bookId },
+			{ _id: bookId, isDeleted: false },
 			{ $inc: { reviews: -1 } },
 			{ new: true }
 		).lean();

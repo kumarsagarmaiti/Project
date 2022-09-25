@@ -74,7 +74,7 @@ const authorizationFromParam = async function (req, res,next ) {
 				.send({ status: false, msg: "Please enter correct bookId" });
 		}
 
-		let findBook = await Book.findOne({ _id: bookId, isDeleted: false }).lean();
+		let findBook = await Book.findOne({ _id: bookId, isDeleted: false });
 		if (!findBook) {
 			return res.status(404).send({ status: false, message: "Book not found" });
 		}
