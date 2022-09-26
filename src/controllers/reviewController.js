@@ -48,7 +48,7 @@ const createReview = async function (req, res) {
 			}
 		}
 
-		const requiredFields = ["bookId", "reviewedAt", "rating"];
+		const requiredFields = ["reviewedAt", "rating"];
 		for (field of requiredFields) {
 			if (!reviewData[field])
 				return res
@@ -127,7 +127,7 @@ const updateReview = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please provide proper id" });
 
-		for (key of Object.keys(req.query))
+		for (key of Object.keys(req.params))
 			if (!ObjectId.isValid(key))
 				return res
 					.status(400)
@@ -179,7 +179,7 @@ const updateReview = async function (req, res) {
 
 		if (rating) {
 			if (typeof rating === "number") {
-				if (rating >= 5 || 1 >= rating) {
+				if (rating > 5 || 1 > rating) {
 					return res.status(400).send({
 						status: false,
 						message: "Ratings should be between 1 to 5",
@@ -274,3 +274,5 @@ const deleteReview = async function (req, res) {
 };
 
 module.exports = { createReview, updateReview, deleteReview };
+
+

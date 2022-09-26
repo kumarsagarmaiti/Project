@@ -156,8 +156,7 @@ const getBooks = async function (req, res) {
 				userId: 1,
 				category: 1,
 				reviews: 1,
-				releasedAt: 1,
-				__v: 0,
+				releasedAt: 1
 			})
 			.sort({ title: 1 });
 		if (findbook.length === 0) {
