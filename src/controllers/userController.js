@@ -70,7 +70,7 @@ const createUser = async function (req, res) {
 
 		const passwordRegex =
 			/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,15})/;
-		if (data.password.trim().length > 15 || data.password.trim().length <8)
+		if (data.password.trim().length > 15 || data.password.trim().length < 8)
 			return res.status(400).send({
 				status: false,
 				message: "Password length should be between 8 to 15 characters",

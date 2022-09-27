@@ -57,7 +57,7 @@ const authorizationFromBody = async function (req, res, next) {
 	}
 };
 
-const authorizationFromParam = async function (req, res,next ) {
+const authorizationFromParam = async function (req, res, next) {
 	try {
 		let userId = req.decodedtoken.userId;
 		let bookId = req.params.bookId;

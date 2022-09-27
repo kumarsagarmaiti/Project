@@ -4,8 +4,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const bookController = require("../controllers/bookController");
 const reviewController = require("../controllers/reviewController");
-const userAuth=require("../middleware/auth")
-
+const userAuth = require("../middleware/auth");
 
 //User API
 router.post("/register", userController.createUser);
@@ -40,7 +39,7 @@ router.delete(
 
 //Review API
 router.post("/books/:bookId/review", reviewController.createReview);
-router.put("/books/:bookId/review/:reviewId",reviewController.updateReview)
-router.delete("/books/:bookId/review/:reviewId",reviewController.deleteReview)
+router.put("/books/:bookId/review/:reviewId", reviewController.updateReview);
+router.delete("/books/:bookId/review/:reviewId", reviewController.deleteReview);
 
 module.exports = router;
