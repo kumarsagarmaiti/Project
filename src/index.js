@@ -2,7 +2,7 @@ const express = require("express");
 const multer = require('multer')
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const route = require("../src/routes/route");
+const route = require("./routes/route");
 const app = express();
 const port = 3000;
 

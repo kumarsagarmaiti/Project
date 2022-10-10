@@ -14,6 +14,11 @@ let isEmptyVar = function (value) {
     return false;
 }
 
+let isValidString = function (field) {
+	if (typeof data != "string" || data.trim().length == 0) return false;
+	return true;
+};
+
 let isValidPhone = function (number) {
     let phoneRegex = /^[6-9]\d{9}$/;
     return phoneRegex.test(number);
@@ -44,7 +49,7 @@ let isValidObjectId = function (ObjectId) {
 
 
 let isEmptyFile = (file) => {
-    if (!file || file.length == 0) return true
+    if (!file || file.length == 0) return true 
     return false
 }
 
@@ -87,5 +92,6 @@ module.exports = {
     acceptFileType,
     isValidJSONstr,
     isPincodeValid,
-    checkArrContent
+    checkArrContent,
+    isValidString
 }
