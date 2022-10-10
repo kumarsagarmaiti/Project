@@ -1,6 +1,7 @@
 const User = require("../Models/userModel");
 const validators = require("../Utility/validator");
 const bcrypt = require("bcrypt");
+const {uploadFiles}=require("../MIddleware/aws")
 
 const createUser = async function (req, res) {
 	try {
