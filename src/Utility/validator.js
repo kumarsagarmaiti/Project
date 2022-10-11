@@ -1,6 +1,16 @@
 const mongoose = require("mongoose")
 const moment = require("moment")
 
+
+const isValid = function (value) {
+    if (typeof value === "undefined" || value === null ||typeof value !== "string") return false
+    if (typeof value === 'string' && value.trim().length === 0) return false
+    return true
+}
+const isValidInputBody = function (object) {
+    return Object.keys(object).length > 0
+}
+
 let isEmptyObject = function (body) {
     if (!body) return true
     if (Object.keys(body).length == 0) return true;
@@ -9,8 +19,8 @@ let isEmptyObject = function (body) {
 
 let isEmptyVar = function (value) {
     if (!value) return true
-    if (typeof value === 'undefined' || value === null) return true;
-    if (value.trim().length === 0) return true;
+    if (typeof value === 'undefined' || value === null ||typeof value !== "string") return true;
+    if (typeof value === 'string' && value.trim().length === 0) return true;
     return false;
 }
 
@@ -93,5 +103,7 @@ module.exports = {
     isValidJSONstr,
     isPincodeValid,
     checkArrContent,
-    isValidString
+    isValidString,
+    isValid,
+    isValidInputBody
 }
