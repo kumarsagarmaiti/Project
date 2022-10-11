@@ -36,3 +36,144 @@ const login = async function (req, res) {
     }
 
 }
+
+// -------------------------------------------- PUT /user/:userId/profile --------------------------------------------
+
+exports.updateUser = async (req, res) => {
+    try {
+        let userId = req.params.userId;
+        let data = req.body;
+        let files = req.files;
+
+        let { fname, lname, email, password, phone } = data;
+
+        //getting the AWS-S3 link after uploading the user's profileImage
+        if (files && files.length != 0) {
+            let profileImgUrl = await aws.uploadFile(files[0]);
+            data.profileImage = profileImgUrl;
+        }
+
+        //validationg the request body
+        if (validate.isValidBody(data)) return res.status(400).send({ status: false, message: "Enter details to update your account data" });
+
+        if (typeof fname == 'string') {
+            //checking for firstname
+            if (validate.isValid(fname)) return res.status(400).send({ status: false, message: "First name should not be an empty string" });
+
+            //validating firstname
+            if (validate.isValidString(fname)) return res.status(400).send({ status: false, message: "Enter a valid First name and should not contains numbers" });
+        }
+
+        if (typeof lname == 'string') {
+            //checking for lastname
+            if (validate.isValid(lname)) return res.status(400).send({ status: false, message: "Last name should not be an empty string" });
+
+            //validating lastname
+            if (validate.isValidString(lname)) return res.status(400).send({ status: false, message: "Enter a valid Last name and should not contains numbers" });
+        }
+
+        //validating user email-id
+        if (data.email && (!validate.isValidEmail(email))) return res.status(400).send({ status: false, message: "Please Enter a valid Email-id" });
+
+        //checking if email already exist or not
+        let duplicateEmail = await userModel.findOne({ email: email })
+        if (duplicateEmail) return res.status(400).send({ status: false, message: "Email already exist" });
+
+        //validating user phone number
+        if (data.phone && (!validate.isValidPhone(phone))) return res.status(400).send({ status: false, message: "Please Enter a valid Phone number" });
+
+        //checking if email already exist or not
+        let duplicatePhone = await userModel.findOne({ phone: phone })
+        if (duplicatePhone) return res.status(400).send({ status: false, message: "Phone already exist" })
+
+        if (data.password || typeof password == 'string') {
+            //validating user password
+            if (!validate.isValidPwd(password)) return res.status(400).send({ status: false, message: "Password should be between 8 and 15 character" });
+
+            //hashing password with bcrypt
+            data.password = await bcrypt.hash(password, 10);
+        }
+
+        if (data.address === "") {
+            return res.status(400).send({ status: false, message: "Please enter a valid address" })
+        } else if (data.address) {
+
+            if (validate.isValid(data.address)) {
+                return res.status(400).send({ status: false, message: "Please provide address field" });
+            }
+            data.address = JSON.parse(data.address);
+
+            if (typeof data.address !== "object") {
+                return res.status(400).send({ status: false, message: "address should be an object" });
+            }
+            let { shipping, billing } = data.address
+
+            
+
+            if (shipping) {
+                if (typeof shipping != "object") {
+                    return res.status(400).send({ status: false, message: "shipping should be an object" });
+                }
+
+                if (validate.isValid(shipping.street)) {
+                    return res.status(400).send({ status: false, message: "shipping street is required" });
+                }
+
+                if (validate.isValid(shipping.city)) {
+                    return res.status(400).send({ status: false, message: "shipping city is required" });
+                }
+
+                if (!validate.isvalidCity(shipping.city)) {
+                    return res.status(400).send({ status: false, message: "city field have to fill by alpha characters" });
+                }
+
+                if (validate.isValid(shipping.pincode)) {
+                    return res.status(400).send({ status: false, message: "shipping pincode is required" });
+                }
+
+                if (!validate.isValidPincode(shipping.pincode)) {
+                    return res.status(400).send({ status: false, message: "please enter valid pincode" });
+                }
+            }else{
+                return res.status(400).send({ status: false, message: "please enter shipping address" });
+            }
+
+            if (billing) {
+                if (typeof billing != "object") {
+                    return res.status(400).send({ status: false, message: "billing should be an object" });
+                }
+
+                if (validate.isValid(billing.street)) {
+                    return res.status(400).send({ status: false, message: "billing street is required" });
+                }
+
+                if (validate.isValid(billing.city)) {
+                    return res.status(400).send({ status: false, message: "billing city is required" });
+                }
+                if (!validate.isvalidCity(billing.city)) {
+                    return res.status(400).send({ status: false, message: "city field have to fill by alpha characters" });
+                }
+
+                if (validate.isValid(billing.pincode)) {
+                    return res.status(400).send({ status: false, message: "billing pincode is required" });
+                }
+
+                if (!validate.isValidPincode(billing.pincode)) {
+                    return res.status(400).send({ status: false, message: "please enter valid billing pincode" });
+                }
+            }else{
+                return res.status(400).send({ status: false, message: "please enter billing address" });
+            }
+        }
+
+        let updatedUser = await userModel.findOneAndUpdate(
+            { _id: userId },
+            data,
+            { new: true }
+        )
+        return res.status(200).send({ status: true, message: "User profile updated", data: updatedUser })
+
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+}
