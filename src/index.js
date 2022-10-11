@@ -14,7 +14,7 @@ app.use(multer().any())
 
 mongoose.connect("mongodb+srv://project5group10:9y46YnehOwJOJ4al@cluster0.xxbyiwq.mongodb.net/test", { useNewUrlParser: true, })
 
-  .then((result) => console.log("✅ , MongoDb is connected"))
+  .then(() => console.log("✅ MongoDb is connected"))
   .catch((err) => console.log('⚠️ ',err));
 
 
