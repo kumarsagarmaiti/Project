@@ -63,8 +63,8 @@ let isEmptyFile = (file) => {
     return false
 }
 
-const acceptFileType = (file, ...types) => {
-    return types.indexOf(file.mimetype) !== -1 ? true : false
+const acceptFileType = (file, types) => {
+    return types.indexOf(file[0].mimetype) == -1 
 }
 
 const isPincodeValid = function (value) {

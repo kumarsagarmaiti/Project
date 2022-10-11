@@ -5,5 +5,6 @@ const user=require("../Controllers/userController")
 
 router.post("/register",user.createUser)
 router.post("/login",user.userLogin)
+router.put("/user/:userId/profile",user.updateUser)
 
 module.exports=router
