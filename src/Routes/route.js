@@ -13,5 +13,6 @@ router.post("/products",product.createProduct)
 // 	console.log(req.headers.authorization.replace("Bearer","").trim());
 // 	return res.send("success");
 // });
+router.get('/products', productController.getProduct)
 
 module.exports = router;

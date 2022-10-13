@@ -101,4 +101,93 @@ const createProduct = async function (req, res) {
 	}
 };
 
-module.exports = { createProduct };
+// -------------------------------------------- GET PRODUCTS ---------------------------------------------
+
+exports.getProduct = async (req, res) => {
+    try {
+        let userQuery = req.query
+        let checkquery = validate.anyObjectKeysEmpty(userQuery)
+        if (checkquery) return res.status(400).send({ status: false, message: `${checkquery} can't be empty` });
+
+        let filter = { isDeleted: false }
+
+        let { size, name, priceGreaterThan, priceLessThan, priceSort } = userQuery
+
+
+        //if no filter is provided
+        if (Object.keys(userQuery).length == 0) {
+
+            //.collation is used to check substrings --- locale : en = english lang and will neglect pronunciation of words
+            const product = await productModel.find({ isDeleted: false }).sort({ price: priceSort }).collation({ locale: "en", strength: 1 }); //to make case insensitive Indexes
+            if (product.length == 0) return res.status(404).send({ status: false, msg: "No product found" });
+            return res.status(200).send({ status: true, message: 'Success', data: product })
+        }
+
+        // If filter is provided
+        let keys = "size, name, priceGreaterThan, priceLessThan, priceSort"
+
+        if (userQuery.size || userQuery.priceSort || userQuery.priceLessThan || userQuery.priceGreaterThan || userQuery.name) {
+
+            if (Object.keys(userQuery).length > 0) {
+
+                if (!validate.isValid(size)) {
+                    const sizeArray = size.trim().split(",").map((s) => s.trim());
+                    filter['availableSizes'] = { $in: sizeArray }
+                }
+
+
+                if (name) {
+                    if (validate.isValid(name)) {
+                        return res.status(400).send({ status: false, message: "Not a valid Name" })
+                    }
+                    const titleName = name.replace(/\s{2,}/g, ' ').trim()
+                    filter['title'] = { $regex: titleName, $options: 'i' }  //options: 'i' to make case insensitive
+
+                }
+                                                
+                if (priceGreaterThan) {
+                    if (validate.isValid(priceGreaterThan) || !validate.isValidPrice(priceGreaterThan)) {
+                        return res.status(400).send({ status: false, message: "Not a valid priceGreaterThan" })
+                    }
+                    filter['price'] = { $gt: priceGreaterThan }
+
+                }
+                if (priceLessThan) {
+                    if (validate.isValid(priceLessThan) || !validate.isValidPrice(priceLessThan)) {
+                        return res.status(400).send({ status: false, message: "Not a valid priceLessThan" })
+                    }
+                    filter['price'] = { $lt: priceLessThan }
+                }
+
+                if (priceGreaterThan && priceLessThan) {
+                    filter['price'] = { $gt: priceGreaterThan, $lt: priceLessThan }
+                }
+
+                if (priceSort) {
+                    if (!validate.isValid(priceSort)) {
+                        if (!(priceSort == 1 || priceSort == -1))
+                            return res.status(400).send({ status: false, message: "Price sort value should be 1 or -1 only" })
+                    }
+                }
+            }
+
+            
+            let product = await productModel.find(filter).sort({ price: priceSort }).collation({ locale: "en", strength: 1 }); //collation query perform string comparisions without regard for case
+            if (product.length === 0) return res.status(404).send({ status: false, message: "No products found" })
+            return res.status(200).send({ status: true, message: 'Success', data: product })
+
+        } else {
+            return res.status(400).send({ status: false, message: `Cannot provide keys other than ${keys}` })
+        }
+
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message });
+    }
+
+
+}
+
+
+
+
+module.exports = { createProduct ,getProduct};
