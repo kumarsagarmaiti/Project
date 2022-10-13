@@ -9,6 +9,7 @@ router.post("/login", user.userLogin);
 router.put("/user/:userId/profile", user.updateUser);
 
 router.post("/products",product.createProduct)
+router.put("/products/:productId",product.updateProduct)
 // router.post("/test", (req, res) => {
 // 	console.log(req.headers.authorization.replace("Bearer","").trim());
 // 	return res.send("success");
