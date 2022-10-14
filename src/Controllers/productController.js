@@ -3,7 +3,7 @@ const validate = require("../Utility/validator");
 const aws = require("../MIddleware/aws");
 const reg = new RegExp("^[0-9]+$");
 
-const createProduct = async function (req, res) {
+const createProduct = async (req, res) => {
 	try {
 		const productData = req.body;
 		const productImage = req.files;
@@ -50,7 +50,10 @@ const createProduct = async function (req, res) {
 		}
 
 		if (
-			!productData.availableSizes ||
+			productData.availableSizes.charAt(0) != "[" ||
+			productData.availableSizes.charAt(
+				productData.availableSizes.length - 1
+			) != "]" ||
 			productData.availableSizes.trim().length === 0 ||
 			typeof JSON.parse(productData.availableSizes) !== "object"
 		)
@@ -70,7 +73,7 @@ const createProduct = async function (req, res) {
 					)}`,
 				});
 		}
-		productData.availableSizes = availableSizes;
+		productData.availableSizes = [...new Set(availableSizes)];
 
 		if (productData.currencyId) {
 			if (!validate.isValid(productData.currencyId))
@@ -142,7 +145,126 @@ const createProduct = async function (req, res) {
 	}
 };
 
-const updateProduct = async function (req, res) {
+const getProduct = async (req, res) => {
+	try {
+		const userQuery = req.query;
+
+		let { size, name, priceGreaterThan, priceLessThan, priceSort } = userQuery;
+
+		//if no filter is provided
+		if (Object.keys(userQuery).length == 0) {
+			const product = await Product.find({ isDeleted: false }).sort({
+				price: priceSort,
+			});
+			if (product.length === 0)
+				return res.status(404).send({ status: false, msg: "No product found" });
+			return res
+				.status(200)
+				.send({ status: true, message: "Success", data: product });
+		}
+
+		const queryFields = Object.keys(userQuery);
+		for (field of queryFields) {
+			if (!userQuery[field])
+				return res
+					.status(400)
+					.send({ status: false, message: `Please provide ${field}` });
+			if (!validate.isValid(userQuery[field]))
+				return res
+					.status(400)
+					.send({ status: false, message: `Please provide a valid ${field}` });
+		}
+
+		userQuery.isDeleted = false;
+
+		if (size) {
+			if (
+				size.charAt(0) != "[" ||
+				size.charAt(size.length - 1) != "]" ||
+				typeof JSON.parse(userQuery.size) !== "object" ||
+				JSON.parse(userQuery.size).length < 1
+			)
+				return res.status(400).send({
+					status: false,
+					message: "Please provide sizes in an array",
+				});
+
+			let availableSizes = JSON.parse(userQuery.size);
+
+			const productEnumSizes = ["S", "XS", "M", "X", "L", "XXL", "XL"];
+			for (sizes of availableSizes) {
+				if (!productEnumSizes.includes(sizes))
+					return res.status(400).send({
+						status: false,
+						message: `availableSizes can be only among these: ${productEnumSizes.join(
+							", "
+						)}`,
+					});
+			}
+			userQuery.availableSizes = { $all: [...availableSizes] };
+			delete userQuery.size;
+		}
+
+		if (name) {
+			name = new RegExp(name, "i");
+			userQuery["title"] = { $regex: name };
+		}
+
+		if (priceGreaterThan) {
+			if (!reg.test(Number(priceGreaterThan))) {
+				return res
+					.status(400)
+					.send({ status: false, message: "Not a valid priceGreaterThan" });
+			}
+			userQuery["price"] = { $gt: Number(priceGreaterThan) };
+			delete userQuery.priceGreaterThan;
+		}
+		if (priceLessThan) {
+			if (!reg.test(Number(priceLessThan))) {
+				return res
+					.status(400)
+					.send({ status: false, message: "Not a valid priceLessThan" });
+			}
+			userQuery["price"] = { $lt: Number(priceLessThan) };
+			delete userQuery.priceLessThan;
+		}
+
+		if (priceGreaterThan && priceLessThan) {
+			userQuery["price"] = {
+				$gt: Number(priceGreaterThan),
+				$lt: Number(priceLessThan),
+			};
+			delete userQuery.priceGreaterThan;
+			delete userQuery.priceLessThan;
+		}
+
+		if (priceSort) {
+			if (!(priceSort == 1 || priceSort == -1))
+				return res.status(400).send({
+					status: false,
+					message: "Price sort value should be 1 or -1 only",
+				});
+		}
+
+		let product = await Product.find(userQuery).sort({
+			price: Number(priceSort),
+		});
+
+		if (product.length === 0)
+			return res
+				.status(404)
+				.send({ status: false, message: "No products found" });
+		return res.status(200).send({
+			status: true,
+			message: `${product.length} product(s) found`,
+			data: product,
+		});
+	} catch (error) {
+		return res.status(500).send({ status: false, message: error.message });
+	}
+};
+
+const updateProduct = async (req, res) => {
 	try {
 		const productId = req.params.productId;
 		const productData = req.body;
@@ -167,9 +289,7 @@ const updateProduct = async function (req, res) {
 				.status(404)
 				.send({ status: false, message: "No product found" });
 
-		const updationFields = Object.keys(productData).filter(
-			(x) => x != "price" && x != "isFreeShipping" && x != "installments"
-		);
+		const updationFields = Object.keys(productData);
 		for (field of updationFields) {
 			if (!productData[field])
 				return res
@@ -184,11 +304,6 @@ const updateProduct = async function (req, res) {
 		const numberFields = ["price", "installments"];
 		for (field of numberFields) {
 			if (productData[field]) {
-				if (!validate.isValid(productData[field]))
-					return res.status(400).send({
-						status: false,
-						message: `Please provide a valid ${field}`,
-					});
 				if (!reg.test(productData[field])) {
 					return res
 						.status(400)
@@ -293,4 +408,64 @@ const updateProduct = async function (req, res) {
 	}
 };
 
-module.exports = { createProduct, updateProduct };
+const getProductById = async (req, res) => {
+	try {
+		if (!validate.isValidObjectId(req.params.productId)) {
+			return res
+				.status(400)
+				.send({ status: false, message: "Please enter valid product id" });
+		}
+		let totalProducts = await Product.findOne({
+			_id: req.params.productId,
+			isDeleted: false,
+		}).select({ deletedAt: 0 });
+		if (!totalProducts)
+			return res
+				.status(404)
+				.send({ status: false, message: "Product not found or deleted" });
+		return res
+			.status(200)
+			.send({ status: true, message: "Success", data: totalProducts });
+	} catch (error) {
+		console.log(error);
+		return res.status(500).send({ status: false, msg: error.message });
+	}
+};
+
+const deleteProductById = async (req, res) => {
+	try {
+		const productId = req.params.productId;
+		if (!productId)
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide productId" });
+		if (!validate.isValidObjectId(productId))
+			return res
+				.status(400)
+				.send({ status: false, message: "Invalid ObjectId: productId" });
+		const deleteProduct = await Product.findOneAndUpdate(
+			{ _id: productId, isDeleted: false },
+			{ isDeleted: true },
+			{ new: true }
+		);
+		if (!deleteProduct)
+			return res
+				.status(404)
+				.send({
+					status: false,
+					message: "Product with the given id not found",
+				});
+		res
+			.status(200)
+			.send({ status: true, message: "Document deleted successfully"});
+	} catch (error) {
+		return res.status(500).send({ status: false, message: error.message });
+	}
+};
+module.exports = {
+	createProduct,
+	updateProduct,
+	getProduct,
+	getProductById,
+	deleteProductById,
+};

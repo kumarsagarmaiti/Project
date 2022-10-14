@@ -379,7 +379,7 @@ const updateUser = async (req, res) => {
 			}
 		}
 
-		let updatedUser = await User.findOneAndUpdate({ _id: userId }, data, {
+		let updatedUser = await User.findByIdAndUpdate(userId , data, {
 			new: true,
 		});
 		return res.status(200).send({
