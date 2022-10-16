@@ -18,7 +18,7 @@ const createProduct = async (req, res) => {
 				.status(400)
 				.send({ status: false, message: "Please provide productImage" });
 
-		const fileTypes = ["image/png", "image/jpeg"];
+		const fileTypes = ["image/png", "image/jpeg", "image/jpg"];
 		if (validate.acceptFileType(productImage, fileTypes))
 			return res.status(400).send({
 				status: false,
@@ -50,10 +50,7 @@ const createProduct = async (req, res) => {
 		}
 
 		if (
-			productData.availableSizes.charAt(0) != "[" ||
-			productData.availableSizes.charAt(
-				productData.availableSizes.length - 1
-			) != "]" ||
+			!validate.isValidJSONstr(productData.availableSizes) ||
 			productData.availableSizes.trim().length === 0 ||
 			typeof JSON.parse(productData.availableSizes) !== "object"
 		)
@@ -62,7 +59,9 @@ const createProduct = async (req, res) => {
 				message: "Please provide available sizes in an array",
 			});
 
-		const availableSizes = JSON.parse(productData.availableSizes);
+		let availableSizes = JSON.parse(productData.availableSizes).map((x) =>
+			x.toUpperCase()
+		);
 		const productEnumSizes = ["S", "XS", "M", "X", "L", "XXL", "XL"];
 		for (sizes of availableSizes) {
 			if (!productEnumSizes.includes(sizes))
@@ -179,8 +178,7 @@ const getProduct = async (req, res) => {
 
 		if (size) {
 			if (
-				size.charAt(0) != "[" ||
-				size.charAt(size.length - 1) != "]" ||
+				!validate.isValidJSONstr(size) ||
 				typeof JSON.parse(userQuery.size) !== "object" ||
 				JSON.parse(userQuery.size).length < 1
 			)
@@ -189,7 +187,9 @@ const getProduct = async (req, res) => {
 					message: "Please provide sizes in an array",
 				});
 
-			let availableSizes = JSON.parse(userQuery.size);
+			let availableSizes = JSON.parse(userQuery.size).map((x) =>
+				x.toUpperCase()
+			);
 
 			const productEnumSizes = ["S", "XS", "M", "X", "L", "XXL", "XL"];
 			for (sizes of availableSizes) {
@@ -449,19 +449,18 @@ const deleteProductById = async (req, res) => {
 			{ new: true }
 		);
 		if (!deleteProduct)
-			return res
-				.status(404)
-				.send({
-					status: false,
-					message: "Product with the given id not found",
-				});
+			return res.status(404).send({
+				status: false,
+				message: "Product with the given id not found",
+			});
 		res
 			.status(200)
-			.send({ status: true, message: "Document deleted successfully"});
+			.send({ status: true, message: "Document deleted successfully" });
 	} catch (error) {
 		return res.status(500).send({ status: false, message: error.message });
 	}
 };
+
 module.exports = {
 	createProduct,
 	updateProduct,

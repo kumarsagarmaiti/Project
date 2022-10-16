@@ -26,7 +26,7 @@ const authentication = (req, res, next) => {
 	}
 };
 
-const authorization = async (req, res, next) => {
+const authorizationFromParams = async (req, res, next) => {
 	try {
 		let loggedInUser = req.decodedToken.userId;
 
@@ -35,23 +35,44 @@ const authorization = async (req, res, next) => {
 				return res
 					.status(400)
 					.send({ status: false, message: "Enter a valid user Id" });
-			let checkUser = await userModel.findById(req.params.userId);
-			if (!checkUser)
+			authorizeuser = req.params.userId;
+			if (loggedInUser !== authorizeuser)
 				return res
-					.status(404)
-					.send({ status: false, message: "User not found" });
-			authorizeuser =req.params.userId;
-		}else{
-      return res.status(400).send({status:false,message:"Please provide userId"})
-    }
-		if (loggedInUser !== authorizeuser)
+					.status(403)
+					.send({ status: false, message: "Error!! authorization failed" });
+		} else {
 			return res
-				.status(403)
-				.send({ status: false, message: "Error!! authorization failed" });
+				.status(400)
+				.send({ status: false, message: "Please provide userId" });
+		}
 		next();
 	} catch (error) {
 		return res.status(500).send({ status: false, error: error.message });
 	}
 };
 
-module.exports = { authentication, authorization };
+const authorizationFromBody = async (req, res, next) => {
+	try {
+		let loggedInUser = req.decodedToken.userId;
+
+		if (req.body.userId) {
+			if (!validate.isValidObjectId(req.body.userId))
+				return res
+					.status(400)
+					.send({ status: false, message: "Enter a valid user Id" });
+			authorizeuser = req.body.userId;
+			if (loggedInUser !== authorizeuser)
+				return res
+					.status(403)
+					.send({ status: false, message: "Error!! authorization failed" });
+		} else {
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide userId in body" });
+		}
+		next();
+	} catch (error) {
+		return res.status(500).send({ status: false, error: error.message });
+	}
+};
+module.exports = { authentication, authorizationFromParams,authorizationFromBody };

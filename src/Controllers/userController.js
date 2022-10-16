@@ -192,9 +192,9 @@ const userLogin = async function (req, res) {
 		const token = jwt.sign(
 			{
 				userId: user._id,
-				expiresIn: "1h",
 			},
-			"Group-10 secret key"
+			"Group-10 secret key",
+			{ expiresIn: "1h" }
 		);
 
 		return res.status(200).send({
@@ -379,7 +379,7 @@ const updateUser = async (req, res) => {
 			}
 		}
 
-		let updatedUser = await User.findByIdAndUpdate(userId , data, {
+		let updatedUser = await User.findByIdAndUpdate(userId, data, {
 			new: true,
 		});
 		return res.status(200).send({

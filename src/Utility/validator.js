@@ -76,8 +76,8 @@ const isPincodeValid = function (value) {
 
 let isValidJSONstr = (json) => {
 	try {
-		return JSON.parse(json);
-	} catch (_) {
+		JSON.parse(json);
+	} catch (err) {
 		return false;
 	}
 };
