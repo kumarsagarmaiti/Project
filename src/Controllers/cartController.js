@@ -1,10 +1,7 @@
 const Cart = require("../Models/cartModel");
 const Product = require("../Models/productModel");
 const validate = require("../Utility/validator");
-// const ObjectID = require("mongoose").Types.ObjectId;
 const reg = new RegExp("^[0-9]+$");
-const mongodb = require("mongodb");
-const ObjectId = mongodb.ObjectId;
 
 const createCart = async function (req, res) {
 	try {
@@ -80,12 +77,10 @@ const createCart = async function (req, res) {
 							availableProducts.push(item1);
 						}
 					}
-					cartPresent.totalItems += Number(item.quantity);
 					cartPresent.totalPrice +=
 						productPresent.price * Number(item.quantity);
 				} else {
 					cartPresent.items.push(item);
-					cartPresent.totalItems += Number(item.quantity);
 					cartPresent.totalPrice +=
 						productPresent.price * Number(item.quantity);
 				}
@@ -102,6 +97,7 @@ const createCart = async function (req, res) {
 				}
 			}
 			cartPresent.items = [...cartPresent.items];
+			cartPresent.totalItems=cartPresent.items.length
 			const updateCart = await Cart.findByIdAndUpdate(
 				cartPresent["_id"],
 				cartPresent,
@@ -157,13 +153,13 @@ const createCart = async function (req, res) {
 			});
 			if (isProductAvailable) {
 				cartData.totalPrice += isProductAvailable.price * quantity;
-				cartData.totalItems += quantity;
 				availableProducts.push(item);
 			} else {
 				unavailableProducts.push(item.productId);
 			}
 		}
-		cartData.items = [...availableProducts];
+		cartData.items = [...availableProducts]
+		cartData.totalItems=cartData.items.length
 		if (cartPresent) {
 			if (cartPresent.items.length == 0) {
 				const updateCart = await Cart.findOneAndUpdate(
@@ -254,7 +250,7 @@ const updateCart = async function (req, res) {
 					{
 						$pull: { items: { productId } },
 						$inc: {
-							totalItems: -productQuantity.quantity,
+							totalItems: -1,
 							totalPrice: -(productQuantity.quantity * productExists.price),
 						},
 					},
@@ -268,7 +264,6 @@ const updateCart = async function (req, res) {
 					{ "items.productId": { _id: productId } },
 					{
 						$inc: {
-							totalItems: -removeProduct,
 							totalPrice: -(removeProduct * productExists.price),
 							"items.$.quantity": -removeProduct,
 						},

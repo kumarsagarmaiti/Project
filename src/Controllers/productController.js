@@ -113,16 +113,15 @@ const createProduct = async (req, res) => {
 
 		if (productData.isFreeShipping) {
 			if (
-				productData.isFreeShipping != true ||
-				productData.isFreeShipping != false
+				productData.isFreeShipping != "true" ||
+				productData.isFreeShipping != "false"
 			)
 				return res.status(400).send({
 					status: false,
 					message: "Please give a true or false value",
 				});
-			if (productData.isFreeShipping == true) productData.isFreeShipping = true;
-			if (productData.isFreeShipping == false)
-				productData.isFreeShipping = false;
+			if (productData.isFreeShipping == "true")
+				productData.isFreeShipping = true;
 		}
 
 		const isUniqueTitle = await Product.findOne({ title: productData.title });

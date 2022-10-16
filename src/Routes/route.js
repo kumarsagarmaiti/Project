@@ -5,6 +5,7 @@ const user = require("../Controllers/userController");
 const auth = require("../MIddleware/authentication");
 const product = require("../Controllers/productController");
 const cart = require("../Controllers/cartController");
+const order = require("../Controllers/orderController");
 
 router.post("/register", user.createUser);
 router.post("/login", user.userLogin);
@@ -46,6 +47,21 @@ router.delete(
 	auth.authorizationFromParams,
 	cart.deleteCart
 );
+
+router.post(
+	"/users/:userId/orders",
+	auth.authentication,
+	auth.authorizationFromParams,
+	auth.authorizationFromBody,
+	order.createOrder
+);
+router.put(
+	"/users/:userId/orders",
+	auth.authentication,
+	auth.authorizationFromParams,
+	order.updateOrder
+);
+
 
 router.all("/*", (req, res) =>
 	res.send("Invalid URL. Try the ones from the project")
