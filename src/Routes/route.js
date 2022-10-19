@@ -26,7 +26,6 @@ router.post(
 	"/users/:userId/cart",
 	auth.authentication,
 	auth.authorizationFromParams,
-	auth.authorizationFromBody,
 	cart.createCart
 );
 router.put(
@@ -61,7 +60,6 @@ router.put(
 	auth.authorizationFromParams,
 	order.updateOrder
 );
-
 
 router.all("/*", (req, res) =>
 	res.send("Invalid URL. Try the ones from the project")

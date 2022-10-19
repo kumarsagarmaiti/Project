@@ -75,4 +75,8 @@ const authorizationFromBody = async (req, res, next) => {
 		return res.status(500).send({ status: false, error: error.message });
 	}
 };
-module.exports = { authentication, authorizationFromParams,authorizationFromBody };
+module.exports = {
+	authentication,
+	authorizationFromParams,
+	authorizationFromBody,
+};

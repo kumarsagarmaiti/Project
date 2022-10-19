@@ -31,7 +31,7 @@ const createOrder = async function (req, res) {
 					message: "cancellable can either be true or false",
 				});
 			}
-			if (orderData.cancellable == "true") orderData.cancellable = true;
+			if (orderData.cancellable === "true") orderData.cancellable = true;
 		}
 
 		orderData.items = findCart.items;
@@ -55,6 +55,7 @@ const createOrder = async function (req, res) {
 };
 
 const updateOrder = async function (req, res) {
+	//todo: update isDeleted if told in the standup
 	try {
 		if (!validate.isValidInputBody(req.body))
 			return res

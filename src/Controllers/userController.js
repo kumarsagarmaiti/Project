@@ -19,7 +19,9 @@ const createUser = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please provide profileImage" });
 
-		const fileTypes = ["image/png", "image/jpeg"];
+		const fileTypes = ["image/png", "image/jpeg", "image/jpg"];
+		console.log(imageFile);
+		
 		if (validate.acceptFileType(imageFile, fileTypes))
 			return res.status(400).send({
 				status: false,
@@ -41,6 +43,7 @@ const createUser = async function (req, res) {
 
 		data.address = JSON.parse(data.address);
 		if (
+	
 			typeof data.address !== "object" ||
 			typeof data.address.shipping !== "object" ||
 			typeof data.address.billing !== "object"
