@@ -113,7 +113,7 @@ const createProduct = async (req, res) => {
 
 		if (productData.isFreeShipping) {
 			if (
-				productData.isFreeShipping != "true" &&
+				productData.isFreeShipping != "true" ||
 				productData.isFreeShipping != "false"
 			)
 				return res.status(400).send({
