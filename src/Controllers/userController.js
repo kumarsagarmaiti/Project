@@ -148,7 +148,7 @@ const userLogin = async function (req, res) {
 		let body = req.body;
 		const { email, password } = body;
 
-		if (validate.isEmptyObject(body)) {
+		if (!validate.isValidInputBody(body)) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Data is required to login" });
@@ -227,7 +227,7 @@ const getUser = async function (req, res) {
 	}
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async function (req, res) {
 	try {
 		let userId = req.params.userId;
 		let data = req.body;
@@ -240,13 +240,8 @@ const updateUser = async (req, res) => {
 				message: "Enter details to update your account data",
 			});
 
-		const isUserPresent = await User.findById(userId);
-		if (!isUserPresent)
-			return res.status(404).send({ status: false, message: "No user found" });
+		let { email, password, phone } = data;
 
-		let { fname, lname, email, password, phone } = data;
-
-		//getting the AWS-S3 link after uploading the user's profileImage
 		if (files && files.length != 0) {
 			const fileTypes = ["image/png", "image/jpeg", "image/jpg"];
 			if (validate.acceptFileType(imageFile, fileTypes))
@@ -254,57 +249,41 @@ const updateUser = async (req, res) => {
 					status: false,
 					message: `Invalid profileImage type. Please upload a jpg, jpeg or png file.`,
 				});
-
-			let profileImgUrl = await aws.uploadFile(files[0]);
-			data.profileImage = profileImgUrl;
+			data.profileImage = await aws.uploadFile(files[0]);
 		}
 
-		if (typeof fname == "string") {
-			//validating firstname
-			if (!validate.isValid(fname))
+		const incomingFields = Object.keys(data);
+		for (field of incomingFields) {
+			if (!validate.isValid(data[field]))
 				return res.status(400).send({
 					status: false,
-					message: "Please provide a valid fname",
+					message: `Please provide a valid ${field}`,
 				});
 		}
 
-		if (typeof lname == "string") {
-			//validating lastname
-			if (!validate.isValid(lname))
-				return res.status(400).send({
-					status: false,
-					message: "Please provide a valid lname",
-				});
-		}
-
-		//validating user email-id
-		if (data.email && !validate.isValidEmail(email))
+		if (email && !validate.isValidEmail(email))
 			return res
 				.status(400)
 				.send({ status: false, message: "Please Enter a valid Email-id" });
 
-		//checking if email already exist or not
-		let duplicateEmail = await User.findOne({ email: email });
+		let duplicateEmail = await User.findOne({ email });
 		if (duplicateEmail)
 			return res
 				.status(400)
 				.send({ status: false, message: "Email already exist" });
 
-		//validating user phone number
 		if (data.phone && !validate.isValidPhone(phone))
 			return res
 				.status(400)
 				.send({ status: false, message: "Please Enter a valid Phone number" });
 
-		//checking if email already exist or not
 		let duplicatePhone = await User.findOne({ phone: phone });
 		if (duplicatePhone)
 			return res
 				.status(400)
 				.send({ status: false, message: "Phone already exist" });
 
-		if (data.password || typeof password == "string") {
-			//validating user password
+		if (password) {
 			if (!validate.isValidPassword(password))
 				return res.status(400).send({
 					status: false,

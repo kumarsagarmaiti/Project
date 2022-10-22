@@ -10,11 +10,16 @@ const order = require("../Controllers/orderController");
 //USER APIs
 router.post("/register", user.createUser);
 router.post("/login", user.userLogin);
-router.get("/user/:userId/profile", auth.authentication, user.getUser);
+router.get(
+	"/user/:userId/profile",
+	auth.authentication,
+	auth.authorization,
+	user.getUser
+);
 router.put(
 	"/user/:userId/profile",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	user.updateUser
 );
 
@@ -29,25 +34,25 @@ router.delete("/products/:productId", product.deleteProductById);
 router.post(
 	"/users/:userId/cart",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	cart.createCart
 );
 router.put(
 	"/users/:userId/cart",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	cart.updateCart
 );
 router.get(
 	"/users/:userId/cart",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	cart.getCart
 );
 router.delete(
 	"/users/:userId/cart",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	cart.deleteCart
 );
 
@@ -55,13 +60,13 @@ router.delete(
 router.post(
 	"/users/:userId/orders",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	order.createOrder
 );
 router.put(
 	"/users/:userId/orders",
 	auth.authentication,
-	auth.authorizationFromParams,
+	auth.authorization,
 	order.updateOrder
 );
 

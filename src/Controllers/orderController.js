@@ -1,5 +1,6 @@
 const Order = require("../Models/orderModel");
 const Cart = require("../Models/cartModel");
+const Product = require("../Models/productModel");
 const validate = require("../Utility/validator");
 
 const createOrder = async function (req, res) {
@@ -36,14 +37,31 @@ const createOrder = async function (req, res) {
 				message: `status can only be pending`,
 			});
 
-			const cartDetails = {
-				items: findCart.items,
-				totalPrice: findCart.totalPrice,
-				totalItems: findCart.totalItems,
-				totalQuantity: 0,
-				userId,
-			};
-			
+		const unavailableItems = [];
+		for (item of findCart.items) {
+			const findProduct = await Product.findOne({
+				_id: item.productId,
+				isDeleted: false,
+			}).lean();
+			if (!findProduct) unavailableItems.push(item.productId);
+		}
+
+		if (unavailableItems.length > 0)
+			return res.status(404).send({
+				status: false,
+				message: `Items in your cart with the productId: ${unavailableItems.join(
+					", "
+				)} went out of stock. Please remove the product to proceed.`,
+			});
+
+		const cartDetails = {
+			items: findCart.items,
+			totalPrice: findCart.totalPrice,
+			totalItems: findCart.totalItems,
+			totalQuantity: 0,
+			userId,
+		};
+
 		if (cancellable) {
 			if (cancellable != "true" && cancellable != "false") {
 				return res.status(400).send({
@@ -53,7 +71,6 @@ const createOrder = async function (req, res) {
 			}
 			if (cancellable === "false") cartDetails.cancellable = false;
 		}
-
 
 		for (item of findCart.items) {
 			cartDetails.totalQuantity += item.quantity;
@@ -107,13 +124,13 @@ const updateOrder = async function (req, res) {
 			_id: orderId,
 			userId,
 			isDeleted: false,
-		}).lean();
+		});
 		if (!isOrderPresent)
 			return res.status(404).send({
 				status: false,
 				message: "Order with the given orderId not found",
 			});
-				
+
 		if (isOrderPresent.status === "cancelled")
 			return res
 				.status(400)
@@ -123,11 +140,11 @@ const updateOrder = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Order has already been completed" });
 
-				if (status == "cancelled" && !isOrderPresent.cancellable)
-				return res
-					.status(400)
-					.send({ status: false, message: "The order is not cancellable" });
-	
+		if (status == "cancelled" && !isOrderPresent.cancellable)
+			return res
+				.status(400)
+				.send({ status: false, message: "The order is not cancellable" });
+
 		const updateOrder = await Order.findByIdAndUpdate(
 			orderId,
 			{ status },

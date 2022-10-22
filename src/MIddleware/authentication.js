@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const userModel = require("../Models/userModel");
+const User = require("../Models/userModel");
 const validate = require("../Utility/validator");
 
 const authentication = (req, res, next) => {
@@ -26,17 +26,23 @@ const authentication = (req, res, next) => {
 	}
 };
 
-const authorizationFromParams = async (req, res, next) => {
+const authorization = async (req, res, next) => {
 	try {
+		const userId = req.params.userId;
 		let loggedInUser = req.decodedToken.userId;
 
-		if (req.params.userId) {
-			if (!validate.isValidObjectId(req.params.userId))
+		const findUser = await User.findById(userId);
+		if (!findUser)
+			return res.status(404).send({
+				status: false,
+				message: `User with the userId: ${userId} not found`,
+			});
+		if (userId) {
+			if (!validate.isValidObjectId(userId))
 				return res
 					.status(400)
 					.send({ status: false, message: "Enter a valid user Id" });
-			authorizeuser = req.params.userId;
-			if (loggedInUser !== authorizeuser)
+			if (loggedInUser !== userId)
 				return res
 					.status(403)
 					.send({ status: false, message: "Error!! authorization failed" });
@@ -53,5 +59,5 @@ const authorizationFromParams = async (req, res, next) => {
 
 module.exports = {
 	authentication,
-	authorizationFromParams,
+	authorization,
 };

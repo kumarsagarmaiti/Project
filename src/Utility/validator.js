@@ -11,26 +11,9 @@ const isValid = function (value) {
 	if (typeof value === "string" && value.trim().length === 0) return false;
 	return true;
 };
+
 const isValidInputBody = function (object) {
 	return Object.keys(object).length > 0;
-};
-
-let isEmptyObject = function (body) {
-	if (!body) return true;
-	if (Object.keys(body).length == 0) return true;
-	return false;
-};
-
-let isEmptyVar = function (value) {
-	if (!value) return true;
-	if (
-		typeof value === "undefined" ||
-		value === null ||
-		typeof value !== "string"
-	)
-		return true;
-	if (typeof value === "string" && value.trim().length === 0) return true;
-	return false;
 };
 
 let isValidPhone = function (number) {
@@ -61,17 +44,12 @@ let isValidObjectId = function (ObjectId) {
 	return mongoose.isValidObjectId(ObjectId);
 };
 
-let isEmptyFile = (file) => {
-	if (!file || file.length == 0) return true;
-	return false;
-};
-
 const acceptFileType = (file, types) => {
 	return types.indexOf(file[0].mimetype) == -1;
 };
 
 const isPincodeValid = function (value) {
-	return /^[1-9]{1}[0-9]{5}$/.test(value) && typeof value === "number";
+	return /^[1-9]{1}[0-9]{5}$/.test(value);
 };
 
 let isValidJSONstr = (json) => {
@@ -90,15 +68,12 @@ let checkArrContent = (array, isContentArray) => {
 };
 
 module.exports = {
-	isEmptyObject,
-	isEmptyVar,
 	isValidEmail,
 	isValidPhone,
 	isValidPassword,
 	isValidObjectId,
 	isValidDateFormat,
 	isValidDate,
-	isEmptyFile,
 	acceptFileType,
 	isValidJSONstr,
 	isPincodeValid,

@@ -47,33 +47,17 @@ const createCart = async function (req, res) {
 					status: false,
 					message: "cartId doesn't match with the one present for the user",
 				});
-			const availableItems = [];
-			const unavailableItems = [];
-			cartExists.totalPrice = 0;
-			for (item of cartExists.items) {
-				const findProduct = await Product.findOne({
-					_id: item.productId,
-					isDeleted: false,
-				}).lean();
-				if (!findProduct) unavailableItems.push(item.productId);
-				else {
-					availableItems.push(item);
-					cartExists.totalPrice += findProduct.price * item.quantity;
-				}
-			}
-			cartExists.items = [...availableItems];
+
 			const findProduct = await Product.findOne({
 				_id: productId,
 			}).lean();
-			let flag = false;
-			if (findProduct.isDeleted == false && cartExists.items.length > 0) {
+			let flag = true;
+			if (findProduct.isDeleted == false) {
 				for (item of cartExists.items) {
 					if (item.productId.toString() == productId) {
 						item.quantity += 1;
 						flag = false;
 						break;
-					} else {
-						flag = true;
 					}
 				}
 				if (flag) cartExists.items.push({ productId });
@@ -97,27 +81,18 @@ const createCart = async function (req, res) {
 			const updateCart = await Cart.findByIdAndUpdate(cartId, cartExists, {
 				new: true,
 			});
-			if (unavailableItems.length > 0) {
-				return res.status(200).send({
-					status: true,
-					message: `Products with the id(s): ${unavailableItems.join(
-						", "
-					)} went out of stock`,
-					data: updateCart,
-				});
-			} else {
-				return res.status(200).send({
-					status: true,
-					message: `Cart updated successfully`,
-					data: updateCart,
-				});
-			}
+
+			return res.status(200).send({
+				status: true,
+				message: `Cart updated successfully`,
+				data: updateCart,
+			});
 		}
 
 		const findProduct = await Product.findOne({
 			_id: productId,
 			isDeleted: false,
-		}).lean();
+		});
 		if (!findProduct)
 			return res.status(404).send({
 				status: false,
@@ -154,7 +129,7 @@ const updateCart = async function (req, res) {
 				message: "Please provide cart updation details",
 			});
 
-		const mandatoryFields = ["cartId", "productId", "removeProduct"];
+		const mandatoryFields = ["cartId", "productId"];
 		for (field of mandatoryFields) {
 			if (!req.body[field])
 				return res
@@ -164,9 +139,17 @@ const updateCart = async function (req, res) {
 				return res
 					.status(400)
 					.send({ status: false, message: `Please provide a valid ${field}` });
+			if (!validate.isValidObjectId(req.body[field]))
+				return res
+					.status(400)
+					.send({ status: false, message: `Invalid ObjectId:${field}` });
 		}
 
-		if (!reg.test(Number(removeProduct))) {
+		if (
+			removeProduct == null ||
+			removeProduct == undefined ||
+			!reg.test(removeProduct)
+		) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Not a valid removeProduct" });
@@ -177,13 +160,6 @@ const updateCart = async function (req, res) {
 				status: false,
 				message: "removeProduct's value can only be 1 or 0",
 			});
-		mandatoryFields.pop();
-		for (field of mandatoryFields) {
-			if (!validate.isValidObjectId(req.body[field]))
-				return res
-					.status(400)
-					.send({ status: false, message: `Invalid ObjectId:${field}` });
-		}
 
 		const cartExists = await Cart.findById(cartId);
 		if (cartExists) {
@@ -202,7 +178,6 @@ const updateCart = async function (req, res) {
 
 			const productExists = await Product.findOne({
 				_id: productId,
-				isDeleted: false,
 			}).lean();
 			if (
 				removeProduct == 0 ||
