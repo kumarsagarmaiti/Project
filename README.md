@@ -48,6 +48,7 @@
 ### POST /register/business
 
 -Create a business document from request body.
+
 -Save password in an encrypted format
 
 - **Response format**
