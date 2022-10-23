@@ -47,8 +47,7 @@
 
 ### POST /register/business
 
-- Create a business document from request body.
-- Save password in an encrypted format
+- Create a business document from request body. - Save password in an encrypted format
 
 - **Response format**
   - _**On success**_ - Return HTTP status 201. Also return the user document. The response should be a JSON object like [this](#successful-response-structure)
