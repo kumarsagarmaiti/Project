@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
 			city: { type: String, required: true, trim: true },
 			pincode: { type: Number, required: true, trim: true },
 		},
-		isDeleted: { type: Boolean, default: null },
+		isDeleted: { type: Boolean, default: false },
 		deletedAt: { type: Date, default: null },
 	},
 	{ timestamps: true }
