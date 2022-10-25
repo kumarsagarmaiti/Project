@@ -36,12 +36,14 @@ const authorization = async (req, res, next) => {
 				return res
 					.status(400)
 					.send({ status: false, message: "Enter a valid user Id" });
-			const findUser = await User.findById(userId);
+			const findUser = await User.findById(userId).lean();
+
 			if (!findUser)
 				return res.status(404).send({
 					status: false,
 					message: `User with the userId: ${userId} not found`,
 				});
+			req.userDetails = findUser;
 			if (loggedInUser !== userId)
 				return res
 					.status(403)

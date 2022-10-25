@@ -17,10 +17,57 @@ const createMovies = async function (req, res) {
 			return res.status(404).send({ status: false, message: data.Error });
 		data.Genre = data.Genre.split(", ");
 		data.Actors = data.Actors.split(", ");
+		if (data.imdbRating !== "N/A") data.imdbRating = Number(data.imdbRating);
 		const createMovie = await Movies.create(data);
 		res.send(createMovie);
 	} catch (error) {
 		res.send(error.message);
 	}
 };
-module.exports = { createMovies };
+
+const getMovies = async function (req, res) {
+	try {
+		const data = req.query;
+
+		if (data.length === 0) {
+			const findMovies = await Movies.find().select({
+				_id: 0,
+				Title: 1,
+				Year: 1,
+				Actor: 1,
+				Genre: 1,
+				imdbRating: 1,
+				Country: 1,
+				Language: 1,
+				Plot: 1,
+				Runtime: 1,
+			});
+			return res.status(200).send({ status: true, data: findMovies });
+		}
+
+		if (data.Actor) data.Actor = { $in: data.Actor.split(", ") };
+		if (data.Genre) data.Genre = { $in: data.Genre.split(", ") };
+		if (data.Rating) {
+			data.imdbRating = { $gte: Number(data.Rating) };
+			delete data.Rating;
+		}
+
+		const findMovies = await Movies.find(data).select({
+			_id: 0,
+			Title: 1,
+			Year: 1,
+			Actor: 1,
+			Genre: 1,
+			imdbRating: 1,
+			Country: 1,
+			Language: 1,
+			Plot: 1,
+			Runtime: 1,
+		});
+		return res.status(200).send({ status: true, data: findMovies });
+	} catch (error) {
+		res.status(500).send({ status: false, message: error.message });
+	}
+};
+
+module.exports = { createMovies, getMovies };

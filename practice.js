@@ -1,4 +1,4 @@
-const moment =require("moment")
+const moment = require("moment");
 // // let obj1 = { A: 10, B: 15,C:5,D:8,E:10 };
 // // let obj2 = {};
 // // for (key in obj1) {
@@ -13,7 +13,7 @@ const moment =require("moment")
 // // const bookSeats = ["A1", "A2", "B1", 'B10',"E11","C9"];
 // // for (seat of bookSeats) {
 // //   if(!allSeats[0][seat]) console.log("Seat Not Present for "+ seat);
-  
+
 // // 	allSeats[0][seat] = "Unavailable";
 // // }
 
@@ -22,4 +22,16 @@ const moment =require("moment")
 // // 	if (allSeats[0][key] === "Available") availableSeats.push(key);
 // // }
 // // console.log(availableSeats);
-console.log(moment("12:01 PM","LT", true).isValid())
+console.log(moment("12:01 PM", "LT", true).isValid());
+
+const data = [
+	{
+		date: {
+			movieId: { type: ObjectId, ref: "Movies", required: true },
+			timings: { type: String, required: true },
+			screen: Number,
+			availableSeats: [],
+			ticketPrice: [],
+		},
+	},
+];

@@ -1,7 +1,9 @@
 const User = require("../Models/usermodel");
+const Business = require("../Models/businessmodel");
 const validate = require("../Utils/validator");
-const bcrypt=require("bcrypt")
-const jwt=require("jsonwebtoken")
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { find } = require("../Models/businessmodel");
 
 const createUser = async function (req, res) {
 	try {
@@ -276,4 +278,56 @@ const deleteUser = async function (req, res) {
 	}
 };
 
-module.exports = { createUser, userLogin, getUser, updateUser, deleteUser };
+const getMovies = async function (req, res) {
+	try {
+		const userLocation = req.userDetails.address.city;
+		const movieId = req.body.movieId;
+		const date = req.body.date;
+		const findBusiness = await Business.find({
+			"address.city	": userLocation,
+			isDeleted: false,
+		})
+			.select({ address: 1, _id: 1, shows: 1, businessName: 1 })
+			.lean();
+		if (findBusiness.length === 0)
+			return res
+				.status(404)
+				.send({ status: false, message: "No theater near you." });
+
+		const holdBusiness = {};
+		for (business of findBusiness) {
+			for (key in business.shows) {
+				if (key == date) {
+					for (show of business.shows[key]) {
+						if (show.movieId.toString() == movieId) {
+							delete show.availableSeats;
+							holdBusiness[business["_id"]] = show;
+							holdBusiness[business["_id"]]["address"] = business.address;
+							holdBusiness[business["_id"]]["businessName"] =
+								business.businessName;
+						}
+					}
+				}
+			}
+		}
+
+		if (Object.keys(holdBusiness).length < 1)
+			return res.status(404).send({
+				status: false,
+				message: "No theater showing the movie with the movieId: " + movieId,
+			});
+		if (holdBusiness)
+			return res.status(200).send({ status: true, data: holdBusiness });
+	} catch (error) {
+		res.status(500).send({ status: false, message: error.message });
+	}
+};
+
+module.exports = {
+	createUser,
+	userLogin,
+	getUser,
+	updateUser,
+	deleteUser,
+	getMovies,
+};

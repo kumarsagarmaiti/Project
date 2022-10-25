@@ -7,7 +7,6 @@ const businessSchema = new mongoose.Schema(
 			type: ObjectId,
 			required: true,
 			trim: true,
-			unique: true,
 			ref: "User",
 		},
 		businessName: { type: String, required: true, trim: true, unique: true },
@@ -17,18 +16,7 @@ const businessSchema = new mongoose.Schema(
 			city: { type: String, required: true, trim: true },
 			pincode: { type: Number, required: true, trim: true },
 		},
-		shows: [
-			{
-				date: {
-					movieId: { type: ObjectId, ref: "Movies", required: true },
-					timings: { type: String, required: true },
-					screen: Number,
-					availableSeats: [],
-					ticketPrice: [],
-					_id: false,
-				},
-			},
-		],
+		shows: {},
 		isDeleted: { type: Boolean, default: false },
 		deletedAt: { type: Date, default: null },
 	},
