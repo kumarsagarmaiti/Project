@@ -3,7 +3,7 @@ const Business = require("../Models/businessmodel");
 const validate = require("../Utils/validator");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { find } = require("../Models/businessmodel");
+const moment=require("moment")
 
 const createUser = async function (req, res) {
 	try {
@@ -281,8 +281,12 @@ const deleteUser = async function (req, res) {
 const getMovies = async function (req, res) {
 	try {
 		const userLocation = req.userDetails.address.city;
-		const movieId = req.body.movieId;
-		const date = req.body.date;
+		if (!validate.isValidInputBody(req.body))
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide movieId and date" });
+
+		const { movieId, date } = req.body;
 		const findBusiness = await Business.find({
 			"address.city	": userLocation,
 			isDeleted: false,
@@ -325,19 +329,60 @@ const getMovies = async function (req, res) {
 
 const getAvailableSeats = async function (req, res) {
 	try {
-		//todo:valid input body
-		const { date, time, movieId,businessId } = req.body;
+		if (!validate.isValidInputBody(req.body))
+			return res.status(400).send({
+				status: false,
+				message: "Please provide  date, time, movieId and businessId",
+			});
+
+		const { date, time, movieId, businessId } = req.body;
+
+		const mandatoryFields = ["date", "time", "movieId", "businessId"];
+		for (field of mandatoryFields) {
+			if (!req.body[field])
+				return res
+					.status(400)
+					.send({ status: false, message: `Please provide ${field}` });
+		}
+
+		if (
+			!moment(req.body.date, "DD/MM/YYYY", true).isValid() ||
+			!validate.isValid(req.body.date)
+		)
+			return res.status(400).send({
+				status: false,
+				message: `Invalid date format. Try DD/MM/YYYY`,
+			});
+		if (
+			!moment(req.body.time, "LT", true).isValid() ||
+			!validate.isValid(req.body.time)
+		)
+			return res.status(400).send({
+				status: false,
+				message: `Invalid time format. Try 00:00 PM/AM`,
+			});
+
+		if (!validate.isValidObjectId(movieId))
+			return res.status(400).send({
+				status: false,
+				message: `Invalid movieId: ${movieId}`,
+			});
+
+		if (!validate.isValidObjectId(businessId))
+			return res.status(400).send({
+				status: false,
+				message: `Invalid businessId: ${businessId}  `,
+			});
+
 		const findBusiness = await Business.findOne({
 			_id: businessId,
 			isDeleted: false,
 		});
 		if (!findBusiness)
-			return res
-				.status(404)
-				.send({
-					status: false,
-					message: "No business found with the given businessId",
-				});
+			return res.status(404).send({
+				status: false,
+				message: "No business found with the given businessId",
+			});
 
 		const availableSeats = [];
 		if (findBusiness.shows[date]) {
@@ -349,14 +394,19 @@ const getAvailableSeats = async function (req, res) {
 					}
 				}
 			}
-			if (availableSeats.length > 0)
-				return res.status(200).send({ status: true, data: availableSeats });
-			else
-				return res.status.send({
-					status: false,
-					message: "No available seats",
-				});
+		} else {
+			return res.status(404).send({
+				status: false,
+				message: "No movie showing for the given date",
+			});
 		}
+		if (availableSeats.length > 0)
+			return res.status(200).send({ status: true, data: availableSeats });
+		else
+			return res.status(404).send({
+				status: false,
+				message: "No available seats",
+			});
 	} catch (error) {
 		res.status(500).send({ status: false, message: error.message });
 	}

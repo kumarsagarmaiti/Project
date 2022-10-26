@@ -338,8 +338,6 @@ const updateShows = async function (req, res) {
 			delete isBusinessPresent.shows[data.date];
 		}
 
-		if (!data.remove) isBusinessPresent.shows[data.date] = data.showDetails;
-
 		const mandatoryFields = ["date", "showDetails"];
 		if (!data.remove) {
 			for (field of mandatoryFields) {
@@ -363,22 +361,6 @@ const updateShows = async function (req, res) {
 				status: false,
 				message: `Invalid date format. Try DD/MM/YYYY`,
 			});
-
-		if (data.showDetails.length < 1 && !data.remove)
-			return res
-				.status(400)
-				.send({ status: false, message: "Please provide showDetails" });
-		const findBusiness = await Business.findOne({
-			_id: businessId,
-			isDeleted: false,
-		});
-		if (!findBusiness)
-			return res.status(404).send({
-				status: false,
-				message: "No business found with the given businessId",
-			});
-		if (findBusiness.userId.toString() != userId)
-			return res.status(403).send({ status: false, message: "Wrong userId" });
 
 		if (!data.remove) {
 			const showFields = [
@@ -441,16 +423,14 @@ const updateShows = async function (req, res) {
 			}
 		}
 
+		if (!data.remove) isBusinessPresent.shows[data.date] = data.showDetails;
+
 		const updateShows = await Business.findOneAndUpdate(
-			{ isDeleted: false },
+			{ _id: businessId, isDeleted: false },
 			isBusinessPresent,
 			{ new: true }
 		);
-		if (!updateShows)
-			return res
-				.status(404)
-				.send({ status: false, message: "No shows found for the given date" });
-		else return res.status(200).send({ status: true, data: updateShows });
+		return res.status(200).send({ status: true, data: updateShows });
 	} catch (error) {
 		res.status(500).send({ status: false, message: error.message });
 	}

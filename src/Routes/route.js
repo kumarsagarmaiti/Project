@@ -8,7 +8,7 @@ const business = require("../Controller/business");
 const cart = require("../Controller/cart");
 const order = require("../Controller/order");
 
-// router.use("/user/:userId", auth.authentication, auth.authorization);
+router.use("/user/:userId", auth.authentication, auth.authorization);
 
 router.post("/user/:userId/movies", movies.createMovies);
 router.get("/movies", movies.getMovies);

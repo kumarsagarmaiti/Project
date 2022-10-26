@@ -129,6 +129,7 @@
   ```
 
 - Response Structure:
+
   ```
   {
     "status": true,
@@ -384,22 +385,86 @@
 
 ### PUT /user/:userId/business/:businessId
 
+- Updates business details except shows
+
 ### PUT /user/:userId/business/:businessId/shows
 
+- Updates shows by the request body's details
+- Can have insert:1 or remove:1 to insert a show to a specific date or remove a show
+- Request body:
+  ```
+  {
+    "date": "25/10/2022",
+    "showDetails": [
+        {
+            "movieId": "635610a2bf6bdb8143afa91e",
+            "timings": "1:10 PM",
+            "screen": 3,
+            "availableSeats": {
+                "A": 17,
+                "B": 25,
+                "C": 25,
+                "D": 25,
+                "E": 25
+            },
+            "ticketPrice": {
+                "A": 200,
+                "B": 50,
+                "C": 100,
+                "D": 125,
+                "E": 125
+            }
+        }
+    ],
+    "insert": 1
+  }
+  ```
+
 ### DELETE /user/:userId/business/:businessId
+
+- Deletes business with the given businessId
 
 ## Cart APIs
 
 ### POST /user/:userId/cart
 
+- Creates cart with the given request:
+
+```
+{
+    "businessId": "6358b854566342aa8aab8054",
+    "date": "25/10/2022",
+    "time": "1:10 PM",
+    "movieId": "6357bdce16c757135d2dc4c9",
+    "seats": [
+        "A1",
+        "A2",
+        "C3"
+    ]
+}
+```
+
+- The user have to complete their order within 5 mins or the cart gets deleted with the mongodb indexing.
+- While the seats are in the cart no one else can book those seats
+
 ### GET /user/:userId/cart
 
+- Fetches the cart with the cartId in the request body.
+
 ### DELETE /user/:userId/cart
+
+- Deletes the cart document with the cartId from the request body
 
 ## Order APIs
 
 ### POST /user/:userId/order
 
+- Creates cart with the the userId, businessId and cartId
+
 ### GET /user/:userId/order
 
+- Gets the order created
+
 ### DELETE /user/:userId/order
+
+- Can cancel an order

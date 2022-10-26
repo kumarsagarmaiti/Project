@@ -1,9 +1,13 @@
 const axios = require("axios");
 const Movies = require("../Models/moviesmodel");
+const validate = require("../Utils/validator");
 
 const createMovies = async function (req, res) {
 	try {
 		let { title } = req.body;
+		if (!title || !validate.isValid(title))
+			return res.status(400).send({ status: false, message: "Invalid title" });
+
 		const findMovie = await Movies.findOne({ Title: title });
 		if (findMovie)
 			return res.status(200).send({ status: true, data: findMovie });
@@ -31,7 +35,6 @@ const getMovies = async function (req, res) {
 
 		if (data.length === 0) {
 			const findMovies = await Movies.find().select({
-				_id: 0,
 				Title: 1,
 				Year: 1,
 				Actor: 1,
@@ -53,7 +56,6 @@ const getMovies = async function (req, res) {
 		}
 
 		const findMovies = await Movies.find(data).select({
-			_id: 0,
 			Title: 1,
 			Year: 1,
 			Actor: 1,
