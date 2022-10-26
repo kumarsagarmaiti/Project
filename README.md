@@ -127,6 +127,7 @@
   }
 
   ```
+
 - Response Structure:
   ```
   {
@@ -373,8 +374,10 @@
         "updatedAt": "2022-10-26T10:53:47.269Z",
         "__v": 0
     }
-}
+
+
   ```
+
 ### GET /user/:userId/business/:businessId
 
 - Fetches business with userId and businessId
