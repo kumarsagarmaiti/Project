@@ -323,6 +323,45 @@ const getMovies = async function (req, res) {
 	}
 };
 
+const getAvailableSeats = async function (req, res) {
+	try {
+		//todo:valid input body
+		const { date, time, movieId,businessId } = req.body;
+		const findBusiness = await Business.findOne({
+			_id: businessId,
+			isDeleted: false,
+		});
+		if (!findBusiness)
+			return res
+				.status(404)
+				.send({
+					status: false,
+					message: "No business found with the given businessId",
+				});
+
+		const availableSeats = [];
+		if (findBusiness.shows[date]) {
+			for (show of findBusiness.shows[date]) {
+				if (show.movieId.toString() == movieId && show.timings == time) {
+					for (key in show.availableSeats) {
+						if (show.availableSeats[key] == "Available")
+							availableSeats.push(key);
+					}
+				}
+			}
+			if (availableSeats.length > 0)
+				return res.status(200).send({ status: true, data: availableSeats });
+			else
+				return res.status.send({
+					status: false,
+					message: "No available seats",
+				});
+		}
+	} catch (error) {
+		res.status(500).send({ status: false, message: error.message });
+	}
+};
+
 module.exports = {
 	createUser,
 	userLogin,
@@ -330,4 +369,5 @@ module.exports = {
 	updateUser,
 	deleteUser,
 	getMovies,
+	getAvailableSeats,
 };

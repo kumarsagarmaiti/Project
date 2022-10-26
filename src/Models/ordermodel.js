@@ -6,27 +6,16 @@ const orderSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
 		},
-		selectSeats: [
-			{
-				movieId: { type: ObjectId, required: true, trim: true, ref: "Movies" },
-				businessId: {
-					type: ObjectId,
-					required: true,
-					trim: true,
-					ref: "Business",
-				},
-				seats: [{ type: String, required: true }],
-				time: { type: String, required: true },
-				date: { type: Date, required: true },
-				_id: false,
-			},
-		],
+		cartId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		date:String,
+		seats:[],
 		totalPrice: { type: Number, required: true },
 		cancellable: { type: Boolean, default: true },
 		status: {
 			type: String,
-			default: "pending",
-			enum: ["pending", "completed", "cancelled"],
+			default: "Completed",
 		},
 		deletedAt: { type: Date, default: null },
 		isDeleted: { type: Boolean, default: false },
