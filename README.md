@@ -50,7 +50,7 @@
 
 ### GET /user/:userId/shows
 
-- User can search business showing by providing movieId and date
+- User can search business showing the movie by providing movieId and date
 
 ### GET /user/:userId/seats
 
@@ -444,7 +444,7 @@
 }
 ```
 
-- The user have to complete their order within 5 mins or the cart gets deleted with the mongodb indexing.
+- The user have to complete their order within 5 mins or the cart gets deleted with the mongodb TTL indexing.
 - While the seats are in the cart no one else can book those seats
 
 ### GET /user/:userId/cart
@@ -453,7 +453,7 @@
 
 ### DELETE /user/:userId/cart
 
-- Deletes the cart document with the cartId from the request body
+- Permanently deletes the cart document with the cartId from the request body
 
 ## Order APIs
 
