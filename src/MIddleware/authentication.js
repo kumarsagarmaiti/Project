@@ -37,6 +37,7 @@ const authorization = async (req, res, next) => {
 				status: false,
 				message: `User with the userId: ${userId} not found`,
 			});
+		req.userDetails = findUser;
 		if (userId) {
 			if (!validate.isValidObjectId(userId))
 				return res

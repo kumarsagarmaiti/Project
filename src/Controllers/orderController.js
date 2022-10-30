@@ -6,7 +6,13 @@ const validate = require("../Utility/validator");
 const createOrder = async function (req, res) {
 	try {
 		const userId = req.params.userId;
-		const { cartId, status, cancellable } = req.body;
+		const { cartId, status } = req.body;
+
+		if (!req.userDetails.address.shipping.street)
+			return res.status(400).send({
+				status: false,
+				message: "Please provide address to proceed with the order",
+			});
 
 		if (!cartId)
 			return res
@@ -26,7 +32,7 @@ const createOrder = async function (req, res) {
 				message: "cartId doesn't match with the one present for the user",
 			});
 		if (findCart.items.length < 1)
-			return res.status(404).send({
+			return res.status(200).send({
 				status: false,
 				message: "Empty cart. Add items in cart to proceed.",
 			});
@@ -37,7 +43,7 @@ const createOrder = async function (req, res) {
 				message: `status can only be pending`,
 			});
 
-		const unavailableItems = [];
+		const unavailableItems = []; //add availableItems array
 		for (item of findCart.items) {
 			const findProduct = await Product.findOne({
 				_id: item.productId,
@@ -47,7 +53,7 @@ const createOrder = async function (req, res) {
 		}
 
 		if (unavailableItems.length > 0)
-			return res.status(404).send({
+			return res.status(200).send({
 				status: false,
 				message: `Items in your cart with the productId: ${unavailableItems.join(
 					", "
@@ -61,16 +67,6 @@ const createOrder = async function (req, res) {
 			totalQuantity: 0,
 			userId,
 		};
-
-		if (cancellable) {
-			if (cancellable != "true" && cancellable != "false") {
-				return res.status(400).send({
-					status: false,
-					message: "cancellable can either be true or false",
-				});
-			}
-			if (cancellable === "false") cartDetails.cancellable = false;
-		}
 
 		for (item of findCart.items) {
 			cartDetails.totalQuantity += item.quantity;

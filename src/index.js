@@ -15,7 +15,7 @@ app.use(multer().any());
 
 mongoose
 	.connect(
-		"mongodb+srv://project5group10:9y46YnehOwJOJ4al@cluster0.xxbyiwq.mongodb.net/test",
+		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/shoppingCart",
 		{ useNewUrlParser: true }
 	)
 

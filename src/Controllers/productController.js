@@ -1,7 +1,10 @@
 const Product = require("../Models/productModel");
+const Suggestion = require("../Models/suggestionsModel");
+const Recent = require("../Models/recentsModel");
 const validate = require("../Utility/validator");
-const aws = require("../MIddleware/aws");
+const aws = require("../Utility/aws");
 const reg = new RegExp("^[0-9]+$");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 const createProduct = async (req, res) => {
 	try {
@@ -25,7 +28,7 @@ const createProduct = async (req, res) => {
 				message: `Invalid profileImage type. Please upload a jpg, jpeg or png file.`,
 			});
 
-		const mandatoryFields = ["title", "description", "availableSizes"];
+		const mandatoryFields = ["title", "description", "availableSizes", "types"];
 		for (field of mandatoryFields) {
 			if (!productData[field])
 				return res
@@ -73,6 +76,16 @@ const createProduct = async (req, res) => {
 				});
 		}
 		productData.availableSizes = [...new Set(availableSizes)];
+
+		if (
+			!validate.isValidJSONstr(productData.types) ||
+			typeof JSON.parse(productData.types) !== "object"
+		)
+			return res.status(400).send({
+				status: false,
+				message: "Please provide types in an array and a JSON parseable format",
+			});
+		productData.types = JSON.parse(productData.types);
 
 		if (productData.currencyId) {
 			if (!validate.isValid(productData.currencyId))
@@ -159,7 +172,7 @@ const getProduct = async (req, res) => {
 				return res.status(404).send({ status: false, msg: "No product found" });
 			return res.status(200).send({
 				status: true,
-				message: `${product.length} product(s) found`,
+				message: `${product.length} product(s) found. Recently viewed items: localhost:3000/getRecents`,
 				data: product,
 			});
 		}
@@ -249,9 +262,11 @@ const getProduct = async (req, res) => {
 				});
 		}
 
-		let product = await Product.find(userQuery).sort({
-			price: Number(priceSort),
-		});
+		let product = await Product.find(userQuery)
+			.sort({
+				price: Number(priceSort),
+			})
+			.limit(10);
 
 		if (product.length === 0)
 			return res
@@ -259,7 +274,7 @@ const getProduct = async (req, res) => {
 				.send({ status: false, message: "No products found" });
 		return res.status(200).send({
 			status: true,
-			message: `${product.length} product(s) found`,
+			message: `${product.length} product(s) found. Recently viewed items: localhost:3000/getRecents`,
 			data: product,
 		});
 	} catch (error) {
@@ -269,22 +284,60 @@ const getProduct = async (req, res) => {
 
 const getProductById = async (req, res) => {
 	try {
+		const ipAddress = req.ip;
 		if (!validate.isValidObjectId(req.params.productId)) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Please enter valid product id" });
 		}
-		let totalProducts = await Product.findOne({
+		let findProduct = await Product.findOne({
 			_id: req.params.productId,
-			isDeleted: false,
-		}).select({ deletedAt: 0 });
-		if (!totalProducts)
+		})
+			.select({ deletedAt: 0 })
+			.lean();
+		if (findProduct.isDeleted === true)
 			return res
 				.status(404)
-				.send({ status: false, message: "Product not found or deleted" });
-		return res
-			.status(200)
-			.send({ status: true, message: "Success", data: totalProducts });
+				.send({ status: false, message: "Product is currently out of stock" });
+
+		const types = findProduct.types;
+		const findSimilarProducts = await Product.find({
+			types: { $in: types },
+		})
+			.select({ _id: 1 })
+			.lean();
+
+		const addTosuggestions = await Suggestion.findOneAndUpdate(
+			{ ipAddress },
+			{ $addToSet: { products: findSimilarProducts } }
+		);
+
+		const suggestionData = {
+			ipAddress: ipAddress,
+			products: findSimilarProducts,
+		};
+		if (!addTosuggestions) {
+			const createSuggestions = await Suggestion.create(suggestionData);
+		}
+
+		const addToRecent = await Recent.findOneAndUpdate(
+			{ ipAddress },
+			{ $addToSet: { products: req.params.productId } }
+		);
+
+		const RecentData = {
+			ipAddress: ipAddress,
+			products: req.params.productId,
+		};
+		if (!addToRecent) {
+			const createSuggestions = Recent.create(RecentData);
+		}
+
+		return res.status(200).send({
+			status: true,
+			message: `Get suggestions: localhost:3000/getSuggestions`,
+			data: findProduct,
+		});
 	} catch (error) {
 		console.log(error);
 		return res.status(500).send({ status: false, msg: error.message });
@@ -460,11 +513,57 @@ const deleteProductById = async (req, res) => {
 				status: false,
 				message: "Product with the given id not found",
 			});
+
+		const updateSuggestions = await Suggestion.updateMany(
+			{ products: { $in: [new ObjectId(productId)] } },
+			{
+				$pull: { products: new ObjectId(productId) },
+			}
+		);
+		const updateRecent = await Recent.updateMany(
+			{ products: { $in: [new ObjectId(productId)] } },
+			{
+				$pull: { products: new ObjectId(productId) },
+			}
+		);
+
 		res
 			.status(200)
 			.send({ status: true, message: "Document deleted successfully" });
 	} catch (error) {
 		return res.status(500).send({ status: false, message: error.message });
+	}
+};
+
+const getRecent = async function (req, res) {
+	try {
+		const ipAddress = req.ip;
+		const findRecent = await Recent.findOne({ ipAddress })
+			.select({ _id: 0, products: 1 })
+			.populate("products");
+		if (!findRecent||findRecent.products.length<1)
+			return res
+				.status(404)
+				.send({ status: false, message: "No recently viewed products found" });
+		res.status(200).send({ status: true, data: findRecent });
+	} catch (error) {
+		return res.status(500).send({ status: false, msg: error.message });
+	}
+};
+
+const getSuggestions = async function (req, res) {
+	try {
+		const ipAddress = req.ip;
+		const findSuggestions = await Suggestion.findOne({ ipAddress })
+			.select({ _id: 0, products: 1 })
+			.populate("products");
+		if (!findSuggestions||findSuggestions.products.length<1)
+			return res
+				.status(404)
+				.send({ status: false, message: "No suggested products" });
+		res.status(200).send({ status: true, data: findSuggestions });
+	} catch (error) {
+		return res.status(500).send({ status: false, msg: error.message });
 	}
 };
 
@@ -474,4 +573,6 @@ module.exports = {
 	getProduct,
 	getProductById,
 	deleteProductById,
+	getRecent,
+	getSuggestions,
 };

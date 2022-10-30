@@ -1,7 +1,7 @@
 const User = require("../Models/userModel");
 const validate = require("../Utility/validator");
 const bcrypt = require("bcrypt");
-const aws = require("../MIddleware/aws");
+const aws = require("../Utility/aws");
 const jwt = require("jsonwebtoken");
 
 const createUser = async function (req, res) {
@@ -27,14 +27,7 @@ const createUser = async function (req, res) {
 				message: `Invalid profileImage type. Please upload a jpg, jpeg or png file.`,
 			});
 
-		const mandatoryFields = [
-			"fname",
-			"lname",
-			"email",
-			"phone",
-			"password",
-			"address",
-		];
+		const mandatoryFields = ["fname", "lname", "email", "phone", "password"];
 
 		for (field of mandatoryFields) {
 			if (!data[field])
@@ -47,60 +40,64 @@ const createUser = async function (req, res) {
 					.send({ status: false, message: `Please provide a valid ${field}` });
 		}
 
-		if (
-			!validate.isValidJSONstr(data.address) ||
-			typeof JSON.parse(data.address) !== "object"
-		)
-			return res.status(400).send({
-				status: false,
-				message:
-					"address should be a valid object with correct format and details",
-			});
-
-		data.address = JSON.parse(data.address);
-
-		const mandatoryAddressFields = ["street", "city", "pincode"];
-
-		for (field of mandatoryAddressFields) {
-			if (!data.address.shipping[field])
-				return res
-					.status(400)
-					.send({ status: false, message: `Please provide shipping ${field}` });
-		}
-
-		for (field of mandatoryAddressFields) {
-			if (!data.address.billing[field])
-				return res
-					.status(400)
-					.send({ status: false, message: `Please provide billing ${field}` });
-		}
-
-		const stringAddressFields = ["street", "city"];
-		for (field of stringAddressFields) {
-			if (!validate.isValid(data.address.shipping[field]))
+		if (data.address) {
+			if (
+				!validate.isValidJSONstr(data.address) ||
+				typeof JSON.parse(data.address) !== "object"
+			)
 				return res.status(400).send({
 					status: false,
-					message: `Please provide a valid shipping ${field}`,
+					message:
+						"address should be a valid object with correct format and details",
 				});
+
+			data.address = JSON.parse(data.address);
+
+			const mandatoryAddressFields = ["street", "city", "pincode"];
+
+			for (field of mandatoryAddressFields) {
+				if (!data.address.shipping[field])
+					return res.status(400).send({
+						status: false,
+						message: `Please provide shipping ${field}`,
+					});
+			}
+
+			for (field of mandatoryAddressFields) {
+				if (!data.address.billing[field])
+					return res.status(400).send({
+						status: false,
+						message: `Please provide billing ${field}`,
+					});
+			}
+
+			const stringAddressFields = ["street", "city"];
+			for (field of stringAddressFields) {
+				if (!validate.isValid(data.address.shipping[field]))
+					return res.status(400).send({
+						status: false,
+						message: `Please provide a valid shipping ${field}`,
+					});
+			}
+
+			for (field of stringAddressFields) {
+				if (!validate.isValid(data.address.billing[field]))
+					return res.status(400).send({
+						status: false,
+						message: `Please provide a valid billing ${field}`,
+					});
+			}
+
+			if (!validate.isPincodeValid(data.address.shipping.pincode))
+				return res
+					.status(400)
+					.send({ status: false, message: "Invalid shipping pincode" });
+
+			if (!validate.isPincodeValid(data.address.billing.pincode))
+				return res
+					.status(400)
+					.send({ status: false, message: "Invalid billing pincode" });
 		}
-
-		for (field of stringAddressFields) {
-			if (!validate.isValid(data.address.billing[field]))
-				return res.status(400).send({
-					status: false,
-					message: `Please provide a valid billing ${field}`,
-				});
-		}
-
-		if (!validate.isPincodeValid(data.address.shipping.pincode))
-			return res
-				.status(400)
-				.send({ status: false, message: "Invalid shipping pincode" });
-
-		if (!validate.isPincodeValid(data.address.billing.pincode))
-			return res
-				.status(400)
-				.send({ status: false, message: "Invalid billing pincode" });
 
 		if (!validate.isValidPhone(data.phone))
 			return res
@@ -299,87 +296,59 @@ const updateUser = async function (req, res) {
 			if (
 				!validate.isValidJSONstr(data.address) ||
 				typeof JSON.parse(data.address) !== "object"
-			) {
-				return res
-					.status(400)
-					.send({ status: false, message: "address should be a valid object" });
-			}
+			)
+				return res.status(400).send({
+					status: false,
+					message:
+						"address should be a valid object with correct format and details",
+				});
+
 			data.address = JSON.parse(data.address);
 
-			let { shipping, billing } = data.address;
+			const mandatoryAddressFields = ["street", "city", "pincode"];
 
-			if (shipping) {
-				if (typeof shipping != "object") {
-					return res
-						.status(400)
-						.send({ status: false, message: "shipping should be an object" });
-				}
-
-				if (shipping.street) {
-					if (!validate.isValid(shipping.street)) {
-						return res
-							.status(400)
-							.send({ status: false, message: "shipping street is required" });
-					}
-				}
-
-				if (shipping.city) {
-					if (!validate.isValid(shipping.city)) {
-						return res
-							.status(400)
-							.send({ status: false, message: "shipping city is required" });
-					}
-				}
-
-				if (shipping.pincode) {
-					if (!validate.isPincodeValid(shipping.pincode)) {
-						return res
-							.status(400)
-							.send({ status: false, message: "please enter valid pincode" });
-					}
-				}
-			} else {
-				return res
-					.status(400)
-					.send({ status: false, message: "please enter shipping address" });
+			for (field of mandatoryAddressFields) {
+				if (!data.address.shipping[field])
+					return res.status(400).send({
+						status: false,
+						message: `Please provide shipping ${field}`,
+					});
 			}
 
-			if (billing) {
-				if (typeof billing != "object") {
-					return res
-						.status(400)
-						.send({ status: false, message: "billing should be an object" });
-				}
+			for (field of mandatoryAddressFields) {
+				if (!data.address.billing[field])
+					return res.status(400).send({
+						status: false,
+						message: `Please provide billing ${field}`,
+					});
+			}
 
-				if (billing.street) {
-					if (!validate.isValid(billing.street)) {
-						return res
-							.status(400)
-							.send({ status: false, message: "billing street is required" });
-					}
-				}
+			const stringAddressFields = ["street", "city"];
+			for (field of stringAddressFields) {
+				if (!validate.isValid(data.address.shipping[field]))
+					return res.status(400).send({
+						status: false,
+						message: `Please provide a valid shipping ${field}`,
+					});
+			}
 
-				if (billing.city) {
-					if (!validate.isValid(billing.city)) {
-						return res
-							.status(400)
-							.send({ status: false, message: "billing city is required" });
-					}
-				}
+			for (field of stringAddressFields) {
+				if (!validate.isValid(data.address.billing[field]))
+					return res.status(400).send({
+						status: false,
+						message: `Please provide a valid billing ${field}`,
+					});
+			}
 
-				if (billing.pincode) {
-					if (!validate.isPincodeValid(billing.pincode)) {
-						return res.status(400).send({
-							status: false,
-							message: "please enter valid billing pincode",
-						});
-					}
-				}
-			} else {
+			if (!validate.isPincodeValid(data.address.shipping.pincode))
 				return res
 					.status(400)
-					.send({ status: false, message: "please enter billing address" });
-			}
+					.send({ status: false, message: "Invalid shipping pincode" });
+
+			if (!validate.isPincodeValid(data.address.billing.pincode))
+				return res
+					.status(400)
+					.send({ status: false, message: "Invalid billing pincode" });
 		}
 
 		let updatedUser = await User.findByIdAndUpdate(userId, data, {
