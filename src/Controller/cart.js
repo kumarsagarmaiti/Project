@@ -28,6 +28,14 @@ const createCart = async function (req, res) {
 				status: false,
 				message: `Invalid date format. Try DD/MM/YYYY`,
 			});
+		const relative = moment(date, "DD/MM/YYYY").fromNow();
+		if (relative == "Invalid date") {
+			return res.status(400).send({ status: false, message: "Invalid date" });
+		} else if (
+			!(relative.split(" ")[0] == "in") &&
+			relative.split(" ")[1] != "hours"
+		)
+			return res.status(400).send({ status: false, message: "Older Date" });
 		if (
 			!moment(req.body.time, "LT", true).isValid() ||
 			!validate.isValid(req.body.time)
@@ -36,6 +44,9 @@ const createCart = async function (req, res) {
 				status: false,
 				message: `Invalid time format. Try 00:00 PM/AM`,
 			});
+		const relativeTime = moment(time, "h:mm:ss a").fromNow();
+		if (!relativeTime.split(" ")[0] == "in")
+			return res.status(400).send({ status: false, message: "Older time" });
 
 		if (!validate.isValidObjectId(movieId))
 			return res.status(400).send({

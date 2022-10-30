@@ -14,7 +14,7 @@ const cartSchema = new mongoose.Schema(
 		seats: [{ type: String, required: true }],
 		time: { type: String, required: true },
 		date: { type: String, required: true },
-		totalPrice:{type:Number,required:true},
+		totalPrice: { type: Number, required: true },
 		expireAt: {
 			type: Date,
 			default: Date.now,

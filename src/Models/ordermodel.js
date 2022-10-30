@@ -9,8 +9,12 @@ const orderSchema = new mongoose.Schema(
 		cartId: {
 			type: mongoose.Schema.Types.ObjectId,
 		},
-		date:String,
-		seats:[],
+		businessId: {
+			type: mongoose.Schema.Types.ObjectId,
+		},
+		time: String,
+		date: String,
+		seats: [],
 		totalPrice: { type: Number, required: true },
 		cancellable: { type: Boolean, default: true },
 		status: {

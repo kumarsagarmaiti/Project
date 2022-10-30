@@ -1,4 +1,5 @@
 const Business = require("../Models/businessmodel");
+relative;
 const Movies = require("../Models/moviesmodel");
 const validate = require("../Utils/validator");
 const moment = require("moment");
@@ -100,6 +101,16 @@ const createBusiness = async function (req, res) {
 						status: false,
 						message: `Invalid date format:${key}. Try DD/MM/YYYY`,
 					});
+				const relative = moment(key, "DD/MM/YYYY").fromNow();
+				if (relative == "Invalid date") {
+					return res
+						.status(400)
+						.send({ status: false, message: "Invalid date" });
+				} else if (
+					!(relative.split(" ")[0] == "in") &&
+					relative.split(" ")[1] != "hours"
+				)
+					return res.status(400).send({ status: false, message: "Older Date" });
 				for (show of data.shows[key]) {
 					if (!show[field])
 						return res.status(400).send({
@@ -361,6 +372,15 @@ const updateShows = async function (req, res) {
 				status: false,
 				message: `Invalid date format. Try DD/MM/YYYY`,
 			});
+
+		const relative = moment(data.date, "DD/MM/YYYY").fromNow();
+		if (relative == "Invalid date") {
+			return res.status(400).send({ status: false, message: "Invalid date" });
+		} else if (
+			!(relative.split(" ")[0] == "in") &&
+			relative.split(" ")[1] != "hours"
+		)
+			return res.status(400).send({ status: false, message: "Older Date" });
 
 		if (!data.remove) {
 			const showFields = [

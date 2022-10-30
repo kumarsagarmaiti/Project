@@ -12,14 +12,14 @@ router.use("/user/:userId", auth.authentication, auth.authorization);
 
 router.post("/user/:userId/movies", movies.createMovies);
 router.get("/movies", movies.getMovies);
+router.get("/movies/halls", movies.getHalls);
+router.get("/movies/seats", movies.getAvailableSeats);
 
 router.post("/register", user.createUser);
 router.post("/login", user.userLogin);
 router.get("/user/:userId", user.getUser);
 router.put("/user/:userId", user.updateUser);
 router.delete("/user/:userId", user.deleteUser);
-router.get("/user/:userId/shows", user.getMovies);
-router.get("/user/:userId/seats", user.getAvailableSeats);
 
 router.post("/user/:userId/business", business.createBusiness);
 router.get("/user/:userId/business/:businessId", business.getBusiness);

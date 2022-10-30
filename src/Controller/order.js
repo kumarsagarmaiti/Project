@@ -2,6 +2,7 @@ const Order = require("../Models/ordermodel");
 const Cart = require("../Models/cartmodel");
 const Business = require("../Models/businessmodel");
 const validate = require("../Utils/validator");
+const moment = require("moment");
 
 const createOrder = async function (req, res) {
 	try {
@@ -37,9 +38,14 @@ const createOrder = async function (req, res) {
 		req.body.date = findCart.date;
 		req.body.userId = userId;
 		req.body.seats = findCart.seats;
+		req.body.time = findCart.time;
+		req.body.businessId = findCart.businessId;
 
-		const updateBusiness = Business.findByIdAndUpdate(businessId, findBusiness);
-		const deleteCart = Cart.findOneAndRemove({ _id: req.body.cartId });
+		const updateBusiness = await Business.findByIdAndUpdate(
+			businessId,
+			findBusiness
+		);
+		const deleteCart = await Cart.findOneAndRemove({ _id: req.body.cartId });
 
 		const createOrder = await Order.create(req.body);
 		res.status(201).send({ status: true, data: createOrder });
@@ -75,6 +81,48 @@ const cancelOrder = async function (req, res) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Please provide a valid orderId" });
+
+		const findOrder = await Order.findOne({
+			_id: req.body.orderId,
+			isDeleted: false,
+		});
+
+		if (findOrder.status == "Cancelled")
+			return res
+				.status(400)
+				.send({ status: false, message: "Order has already been cancelled" });
+
+		const date = findOrder.date;
+		const time = findOrder.time;
+		const relativeDate = moment(date, "DD/MM/YYYY").fromNow();
+		if (
+			!(relativeDate.split(" ")[0] == "in") &&
+			relativeDate.split(" ")[1] != "hours"
+		)
+			return res
+				.status(400)
+				.send({ status: false, message: "This order cannot be cancelled." });
+
+		const relativeTime = moment(time, "h:mm:ss a").fromNow();
+		if (!(relativeTime.split(" ")[0] == "in"))
+			return res
+				.status(400)
+				.send({ status: false, message: "This order cannot be cancelled." });
+
+		const findBusiness = await Business.findOne({
+			_id: findOrder.businessId,
+		}).lean();
+
+		for (show of findBusiness.shows[date]) {
+			for (seat of findOrder.seats) {
+				show.availableSeats[seat] = "Available";
+			}
+		}
+
+		const updateBusiness = await Business.findByIdAndUpdate(
+			findOrder.businessId,
+			findBusiness
+		);
 
 		const deleteOrder = await Order.findOneAndUpdate(
 			{ _id: req.body.orderId, isDeleted: false },
