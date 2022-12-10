@@ -1,26 +1,19 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const app = express();
-const route = require("./routes/route");
+const mongoose = require("mongoose");
+const route = require("./routes/routes");
 
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 mongoose
 	.connect(
-		"mongodb+srv://project1group43:cpneNUgwCHY8tPxM@cluster0.1aqy9xm.mongodb.net/test",
+		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/tailwind_assingnment",
 		{ useNewUrlParser: true }
 	)
-	.then(() => {
-		console.log("MongoDB is connected");
-	})
-	.catch((error) => {
-		console.log(error);
-	});
+	.then(() => console.log("MongoDB connected"))
+	.catch((err) => console.log(err));
 
 app.use("/", route);
 
-app.listen(3000, () => {
-	console.log("Express app running on server:" + 3000);
-});
-// adding a dummy comment
+app.listen(3000, () => console.log("Connected to port 3000"));
