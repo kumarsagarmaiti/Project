@@ -8,7 +8,7 @@ app.use(express.urlencoded({ extended: true }));
 
 mongoose
 	.connect(
-		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/tailwind_assingnment",
+		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/tailwind_assignment",
 		{ useNewUrlParser: true }
 	)
 	.then(() => console.log("MongoDB connected"))

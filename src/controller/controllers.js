@@ -3,8 +3,9 @@ const jwt = require("jsonwebtoken");
 const Teacher = require("../models/teacherModel");
 const Student = require("../models/studentModel");
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,15}$/;
-const numRegex = new RegExp("^[0-9]$");
+const passwordRegex =
+	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/;
+const numRegex = /^[0-9]+$/;
 const ObjectId = require("mongoose").Types.ObjectId;
 
 const isValid = (value) => {
@@ -26,13 +27,6 @@ const register = async (req, res) => {
 				status: false,
 				message: "Please provide emailId and password",
 			});
-
-		const validFields = ["email", "password"];
-		for (let field of validFields)
-			if (!isValid(data[field]))
-				return res
-					.status(400)
-					.send({ status: false, message: `Please provide a valid ${field}` });
 
 		if (!data.email)
 			return res
@@ -61,7 +55,6 @@ const register = async (req, res) => {
 			});
 
 		data.password = await bcrypt.hash(data.password, 10);
-
 		const createUser = await Teacher.create(data);
 		res.status(201).send({
 			status: true,
@@ -81,21 +74,17 @@ const loginUser = async (req, res) => {
 				status: false,
 				message: "Please provide emailId and password",
 			});
-		const validFields = ["email", "password"];
-		for (let field of validFields)
-			if (!isValid(data[field]))
-				return res
-					.status(400)
-					.send({ status: false, message: `Please provide a valid ${field}` });
+
 		if (data.email) {
 			if (!emailRegex.test(data.email))
 				return res
 					.status(400)
-					.send({ status: false, message: "Email must be valid" });
-		} else
+					.send({ status: false, message: "Invalid emailId" });
+		} else {
 			return res
 				.status(400)
-				.send({ status: false, message: "EmailId is mandatory" });
+				.send({ status: false, message: "emailId is mandatory" });
+		}
 
 		const findUser = await Teacher.findOne({ email: data.email });
 		if (!findUser)
@@ -104,7 +93,10 @@ const loginUser = async (req, res) => {
 				message: "User not found with the given emailId",
 			});
 
-		const decryptedPass = bcrypt.compare(data.password, findUser.password);
+		const decryptedPass = await bcrypt.compare(
+			data.password,
+			findUser.password
+		);
 		if (!decryptedPass)
 			return res
 				.status(401)
@@ -114,11 +106,14 @@ const loginUser = async (req, res) => {
 			expiresIn: "30mins",
 		});
 
-		const studentData = await Student.find({ userId: findUser._id });
+		const studentData = await Student.find({
+			userId: findUser._id,
+			isDeleted: false,
+		});
 		return res.status(200).send({
 			status: true,
 			message: "User login successfull",
-			data: { userId: user._id, token: token, data: studentData },
+			data: { userId: findUser._id, token: token, data: studentData },
 		});
 	} catch (error) {
 		res.status(500).send(error.message);
@@ -130,13 +125,16 @@ const getStudent = async (req, res) => {
 		let data = {};
 		data = req.query;
 		if (Object.keys(data).length === 0) {
-			const studentData = await Student.find({ userId: req.userId });
+			const studentData = await Student.find({
+				userId: req.userId,
+				isDeleted: false,
+			});
 			if (studentData.length == 0)
 				return res
 					.status(200)
 					.send({ status: true, message: "No student recorded yet" });
 			else
-				return res.status(201).send({
+				return res.status(200).send({
 					status: true,
 					data: studentData,
 				});
@@ -150,14 +148,26 @@ const getStudent = async (req, res) => {
 					.send({ status: false, message: `Please provide a valid ${field}` });
 
 		data.userId = req.userId;
+		data.isDeleted = false;
 
-		const studentData = await Student.find({ data });
+		if (data.name) {
+			const name = new RegExp(data.name, "i");
+			delete data.name;
+			data.name = { $regex: name };
+		}
+		if (data.subject) {
+			const subject = new RegExp(data.subject, "i");
+			delete data.subject;
+			data.subject = { $regex: subject };
+		}
+
+		const studentData = await Student.find(data);
 		if (studentData.length == 0)
 			return res
 				.status(200)
 				.send({ status: true, message: "No student recorded yet" });
 		else
-			return res.status(201).send({
+			return res.status(200).send({
 				status: true,
 				data: studentData,
 			});
@@ -198,9 +208,11 @@ const editStudents = async (req, res) => {
 				userId: req.userId,
 				name: data.name,
 				subject: data.subject,
-				marks: data.marks,
+				isDeleted: false,
 			},
-			{ $set: { $inc: { marks: data.marks } } },
+			{
+				$inc: { marks: data.marks },
+			},
 			{ new: true, upsert: true }
 		);
 
@@ -227,12 +239,10 @@ const deleteStudents = async (req, res) => {
 			{ new: true }
 		);
 		if (!findStudent)
-			return res
-				.status(404)
-				.send({
-					status: false,
-					message: "No student found with the given details",
-				});
+			return res.status(404).send({
+				status: false,
+				message: "No student found with the given details",
+			});
 		else
 			return res
 				.status(200)
@@ -240,4 +250,12 @@ const deleteStudents = async (req, res) => {
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
+};
+
+module.exports = {
+	register,
+	loginUser,
+	getStudent,
+	editStudents,
+	deleteStudents,
 };
