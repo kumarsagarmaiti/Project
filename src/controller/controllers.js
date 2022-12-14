@@ -4,7 +4,7 @@ const Teacher = require("../models/teacherModel");
 const Student = require("../models/studentModel");
 const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const passwordRegex =
-	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$/;
+	/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,15}$/;
 const numRegex = /^[0-9]+$/;
 const ObjectId = require("mongoose").Types.ObjectId;
 
