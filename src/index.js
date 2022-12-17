@@ -4,11 +4,12 @@ const bodyParser = require("body-parser");
 const app = express();
 const route = require("./routes/route");
 
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
 
 mongoose
 	.connect(
-		"mongodb+srv://project1group43:cpneNUgwCHY8tPxM@cluster0.1aqy9xm.mongodb.net/test",
+		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/property_tracker",
 		{ useNewUrlParser: true }
 	)
 	.then(() => {
@@ -23,4 +24,3 @@ app.use("/", route);
 app.listen(3000, () => {
 	console.log("Express app running on server:" + 3000);
 });
-// adding a dummy comment
