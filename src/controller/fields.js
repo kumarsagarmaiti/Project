@@ -1,7 +1,9 @@
 const Fields = require("../models/fields");
 const Region = require("../models/regions");
 const Owner = require("../models/owner");
+const Property = require("../models/properties");
 const validate = require("../validator/validators");
+const ObjectId = require("mongoose").Types.ObjectId;
 const latLongRegex = /^-?([0-9]{1,2}|1[0-7][0-9]|180)(\.[0-9]{1,10})?$/;
 
 const createFields = async function (req, res) {
@@ -45,7 +47,6 @@ const createFields = async function (req, res) {
 				.send({ status: false, message: "Crops should be in an array" });
 
 		const isRegPresent = await Region.findOne({
-			name: parentName,
 			_id: parentId,
 		});
 		if (!isRegPresent)
@@ -65,6 +66,16 @@ const createFields = async function (req, res) {
 		const updateRegion = await Region.findByIdAndUpdate(parentId, {
 			$push: { fields: { name: req.body.owner, child: createFields._id } },
 		});
+		const updateProperty = await Property.findOneAndUpdate(
+			{
+				regions: { child: ObjectId(parentId) },
+			},
+			{
+				$push: {
+					cropCycle: { fieldId: createFields._id, cropCycleId: cropCycleId },
+				},
+			}
+		);
 
 		return res.status(201).send({
 			status: true,
