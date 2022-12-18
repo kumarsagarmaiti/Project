@@ -4,11 +4,11 @@ const validate = require("../validator/validators");
 
 const createRegions = async function (req, res) {
 	try {
-		const { name, parentId, parentName } = req.body;
+		const { name, parentId } = req.body;
 		if (!Object.keys(req.body).length)
 			return res
 				.status(400)
-				.send({ status: false, message: "Please provide property details" });
+				.send({ status: false, message: "Please provide region details" });
 
 		const mandatoryFields = ["name", "parentId"];
 		for (let field of mandatoryFields) {
@@ -48,11 +48,11 @@ const createRegions = async function (req, res) {
 		const createRegions = await Regions.create(req.body);
 		if (isPropPresent) {
 			const updateProperty = await Properties.findByIdAndUpdate(parentId, {
-				$push: { regions: { name: name, child: createProperties._id } },
+				$push: { regions: { name: name, child: createRegions._id } },
 			});
 		} else {
 			const updateRegion = await Regions.findByIdAndUpdate(parentId, {
-				$push: { regions: { name: name, child: createProperties._id } },
+				$push: { regions: { name: name, child: createRegions._id } },
 			});
 		}
 

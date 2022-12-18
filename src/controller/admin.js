@@ -1,6 +1,7 @@
 const Admin = require("../models/admin");
 const validate = require("../validator/validators");
 const bcrypt = require("bcrypt");
+const jwt=require("jsonwebtoken")
 
 const createAdmin = async function (req, res) {
 	try {
@@ -35,7 +36,7 @@ const createAdmin = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Email has already been used" });
 
-		password = await bcrypt.hash(password, 10);
+		req.body.password = await bcrypt.hash(password, 10);
 		const createAdmin = await Admin.create(req.body);
 		res.status(201).send({
 			status: true,
@@ -57,7 +58,7 @@ const loginAdmin = async function (req, res) {
 			});
 
 		if (email) {
-			if (!emailRegex.test(email))
+			if (!validate.isValidEmail(email))
 				return res
 					.status(400)
 					.send({ status: false, message: "Invalid emailId" });
@@ -74,7 +75,7 @@ const loginAdmin = async function (req, res) {
 				message: "User not found with the given emailId",
 			});
 
-		const decryptedPass = await bcrypt.compare(password, findUser.password);
+		const decryptedPass = await bcrypt.compare(password, findAdmin.password);
 		if (!decryptedPass)
 			return res
 				.status(401)

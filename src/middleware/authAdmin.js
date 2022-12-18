@@ -27,7 +27,7 @@ const authenticationAdmin = async (req, res, next) => {
 
 const authorizationAdmin = async (req, res, next) => {
 	try {
-		const userId = req.params.userId;
+		const userId = req.params.admin;
 		let loggedInUser = req.userId;
 
 		if (!userId)

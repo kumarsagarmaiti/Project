@@ -4,7 +4,7 @@ const validate = require("../validator/validators");
 const createOrganization = async function (req, res) {
 	try {
 		let { name } = req.body;
-		if (!name || validate.isValid(name))
+		if (!name || !validate.isValid(name))
 			return res
 				.status(400)
 				.send({ status: false, message: "Please enter a valid name" });

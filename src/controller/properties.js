@@ -4,7 +4,7 @@ const validate = require("../validator/validators");
 
 const createProperties = async function (req, res) {
 	try {
-		const { name, parentId, parentName } = req.body;
+		const { name, parentId } = req.body;
 		if (!Object.keys(req.body).length)
 			return res
 				.status(400)
@@ -55,3 +55,5 @@ const createProperties = async function (req, res) {
 		res.status(500).send(error.message);
 	}
 };
+
+module.exports={createProperties}

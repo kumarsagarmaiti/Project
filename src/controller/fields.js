@@ -10,7 +10,7 @@ const createFields = async function (req, res) {
 		if (!Object.keys(req.body).length)
 			return res
 				.status(400)
-				.send({ status: false, message: "Please provide property details" });
+				.send({ status: false, message: "Please provide field details" });
 
 		const mandatoryFields = [
 			"parentId",

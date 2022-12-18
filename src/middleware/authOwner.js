@@ -27,7 +27,7 @@ const authenticationOwner = async (req, res, next) => {
 
 const authorizationOwner = async (req, res, next) => {
 	try {
-		const ownerId = req.params.ownerId;
+		const ownerId = req.params.owner;
 		let loggedInUser = req.ownerDetails.ownerId;
 
 		if (!ownerId)

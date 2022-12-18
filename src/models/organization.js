@@ -3,10 +3,14 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const Organization = new mongoose.Schema(
 	{
-		userId: { type: ObjectId, ref: "Admin" },
+		userId: { type: ObjectId, ref: "Admin", _id: false },
 		name: { type: String, required: true },
 		properties: [
-			{ name: String, child: { type: ObjectId, ref: "Properties" } },
+			{
+				name: String,
+				child: { type: ObjectId, ref: "Properties" },
+				_id: false,
+			},
 		],
 	},
 	{ timestamps: true }
