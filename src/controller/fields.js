@@ -1,49 +1,48 @@
 const Fields = require("../models/fields");
 const Region = require("../models/regions");
+const Owner = require("../models/owner");
 const validate = require("../validator/validators");
 const latLongRegex = /^-?([0-9]{1,2}|1[0-7][0-9]|180)(\.[0-9]{1,10})?$/;
 
 const createFields = async function (req, res) {
 	try {
-		const { name, parentId, parentName, latitude, longitude } = req.body;
+		const { parentId, latitude, longitude, cropCycleId, crops } = req.body;
 		if (!Object.keys(req.body).length)
 			return res
 				.status(400)
 				.send({ status: false, message: "Please provide property details" });
 
 		const mandatoryFields = [
-			"name",
 			"parentId",
-			"parentName",
 			"longitude",
 			"latitude",
+			"cropCycleId",
+			"crops",
 		];
 		for (let field of mandatoryFields) {
 			if (!req.body[field])
 				return res
 					.status(400)
 					.send({ status: false, message: `Please provide ${field}` });
-			if (field == "longitude" || field == "latitude") continue;
-			if (field == "parentId") {
-				if (!validate.isValidObjectId(req.body["parentId"]))
-					return res.status(400).send({
-						status: false,
-						message: "Please provide a valid objectId: parentId",
-					});
-				continue;
-			}
-			if (!validate.isValid(req.body[field]))
-				return res
-					.status(400)
-					.send({ status: false, message: `Please provide a valid ${field}` });
+		}
+		const objectIds = ["parentId", "cropCycleId"];
+		for (let id of objectIds) {
+			if (!validate.isValidObjectId(req.body[id]))
+				return res.status(400).send({
+					status: false,
+					message: `Please provide a valid objectId: ${id}`,
+				});
 		}
 		if (!latLongRegex.test(latitude) || !latLongRegex.test(longitude))
+			return res.status(400).send({
+				status: false,
+				message: "Invalid or incorrect, latitude or longitude",
+			});
+
+		if (!Array.isArray(crops))
 			return res
 				.status(400)
-				.send({
-					status: false,
-					message: "Invalid or incorrect, latitude or longitude",
-				});
+				.send({ status: false, message: "Crops should be in an array" });
 
 		const isRegPresent = await Region.findOne({
 			name: parentName,
@@ -54,11 +53,17 @@ const createFields = async function (req, res) {
 				status: false,
 				message: "Parent Region not found with the given details",
 			});
-		req.body.userId = req.userId;
 
-		const createFields = await Properties.create(req.body);
+		req.body.ownerId = req.ownerDetails.ownerId;
+		req.body.owner = req.ownerDetails.ownerName;
+		req.body.parentName = isRegPresent.name;
+
+		const createFields = await Fields.create(req.body);
+		const updateOwner = await Owner.findByIdAndUpdate(req.body.ownerId, {
+			$push: { fieldId: createFields._id },
+		});
 		const updateRegion = await Region.findByIdAndUpdate(parentId, {
-			$push: { name: name, child: createFields._id },
+			$push: { fields: { name: req.body.owner, child: createFields._id } },
 		});
 
 		return res.status(201).send({
@@ -70,3 +75,5 @@ const createFields = async function (req, res) {
 		res.status(500).send(error.message);
 	}
 };
+
+module.exports = { createFields };

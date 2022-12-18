@@ -10,7 +10,7 @@ const createProperties = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please provide property details" });
 
-		const mandatoryFields = ["name", "parentId", "parentName"];
+		const mandatoryFields = ["name", "parentId"];
 		for (let field of mandatoryFields) {
 			if (!req.body[field])
 				return res
@@ -29,31 +29,28 @@ const createProperties = async function (req, res) {
 					.status(400)
 					.send({ status: false, message: `Please provide a valid ${field}` });
 		}
+
 		const isOrgPresent = await Organization.findOne({
-			name: parentName,
 			_id: parentId,
 		});
 		if (!isOrgPresent)
-			return res
-				.status(404)
-				.send({
-					status: false,
-					message: "Parent Organization not found with the given details",
-				});
+			return res.status(404).send({
+				status: false,
+				message: "Parent Organization not found with the given details",
+			});
 		req.body.userId = req.userId;
+		req.body.parentName = isOrgPresent.name;
 
 		const createProperties = await Properties.create(req.body);
 		const updateOrganization = await Organization.findByIdAndUpdate(parentId, {
-			$push: { name: name, child: createProperties._id },
+			$push: { properties: { name: name, child: createProperties._id } },
 		});
 
-		return res
-			.status(201)
-			.send({
-				status: true,
-				message: "Property created successfully",
-				data: createProperties,
-			});
+		return res.status(201).send({
+			status: true,
+			message: "Property created successfully",
+			data: createProperties,
+		});
 	} catch (error) {
 		res.status(500).send(error.message);
 	}

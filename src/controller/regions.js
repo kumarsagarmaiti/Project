@@ -10,7 +10,7 @@ const createRegions = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please provide property details" });
 
-		const mandatoryFields = ["name", "parentId", "parentName"];
+		const mandatoryFields = ["name", "parentId"];
 		for (let field of mandatoryFields) {
 			if (!req.body[field])
 				return res
@@ -29,16 +29,11 @@ const createRegions = async function (req, res) {
 					.status(400)
 					.send({ status: false, message: `Please provide a valid ${field}` });
 		}
+
 		req.body.userId = req.userId;
 
-		const isPropPresent = await Properties.findOne({
-			name: parentName,
-			_id: parentId,
-		});
-		const isRegPresent = await Regions.findOne({
-			name: parentName,
-			_id: parentId,
-		});
+		const isPropPresent = await Properties.findById(parentId);
+		const isRegPresent = await Regions.findById(parentId);
 
 		if (!isPropPresent && !isRegPresent)
 			return res.status(404).send({
@@ -46,14 +41,18 @@ const createRegions = async function (req, res) {
 				message: "No parent property or region found with the given details",
 			});
 
+		isPropPresent
+			? (req.body.parentName = isPropPresent.name)
+			: (req.body.parentName = isRegPresent.name);
+
 		const createRegions = await Regions.create(req.body);
 		if (isPropPresent) {
 			const updateProperty = await Properties.findByIdAndUpdate(parentId, {
-				$push: { name: name, child: createProperties._id },
+				$push: { regions: { name: name, child: createProperties._id } },
 			});
 		} else {
 			const updateRegion = await Regions.findByIdAndUpdate(parentId, {
-				$push: { name: name, child: createProperties._id },
+				$push: { regions: { name: name, child: createProperties._id } },
 			});
 		}
 

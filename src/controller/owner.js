@@ -1,8 +1,8 @@
-const Admin = require("../models/admin");
+const Owner = require("../models/owner");
 const validate = require("../validator/validators");
 const bcrypt = require("bcrypt");
 
-const createAdmin = async function (req, res) {
+const createOwner = async function (req, res) {
 	try {
 		let { name, email, password } = req.body;
 		if (!Object.keys(req.body).length)
@@ -29,25 +29,25 @@ const createAdmin = async function (req, res) {
 					"Password must contain special characters, numbers, uppercase and lowercase and length should be between 8 to 15 characters",
 			});
 
-		const isEmailPresent = await Admin.findOne({ email });
+		const isEmailPresent = await Owner.findOne({ email });
 		if (isEmailPresent)
 			return res
 				.status(400)
 				.send({ status: false, message: "Email has already been used" });
 
 		password = await bcrypt.hash(password, 10);
-		const createAdmin = await Admin.create(req.body);
+		const createOwner = await Owner.create(req.body);
 		res.status(201).send({
 			status: true,
-			message: "Admin created successfully",
-			data: createAdmin,
+			message: "Owner created successfully",
+			data: createOwner,
 		});
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
 };
 
-const loginAdmin = async function (req, res) {
+const loginOwner = async function (req, res) {
 	try {
 		const { email, password } = req.body;
 		if (Object.keys(req.body).length === 0)
@@ -67,8 +67,8 @@ const loginAdmin = async function (req, res) {
 				.send({ status: false, message: "emailId is mandatory" });
 		}
 
-		const findAdmin = await Admin.findOne({ email });
-		if (!findAdmin)
+		const findOwner = await Owner.findOne({ email });
+		if (!findOwner)
 			return res.status(404).send({
 				status: false,
 				message: "User not found with the given emailId",
@@ -80,18 +80,22 @@ const loginAdmin = async function (req, res) {
 				.status(401)
 				.send({ status: false, message: "Incorrect password" });
 
-		const token = jwt.sign({ userId: findAdmin._id }, "secretKey", {
-			expiresIn: "30mins",
-		});
+		const token = jwt.sign(
+			{ ownerId: findOwner._id, ownerName: findOwner.name },
+			"secretKey",
+			{
+				expiresIn: "30mins",
+			}
+		);
 
 		return res.status(200).send({
 			status: true,
 			message: "User login successfull",
-			data: { userId: findAdmin._id, token: token },
+			data: { userId: findOwner._id, token: token },
 		});
 	} catch (error) {
 		res.status(500).send(error.message);
 	}
 };
 
-module.exports = { createAdmin, loginAdmin };
+module.exports = { createOwner, loginOwner };
