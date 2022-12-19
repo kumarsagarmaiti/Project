@@ -1,5 +1,5 @@
 const Crops = require("../models/crops");
-const Admin = require("../models/admin");
+const validate = require("../validator/validators");
 
 const createCropCycle = async function (req, res) {
 	try {
@@ -68,4 +68,23 @@ const createCropCycle = async function (req, res) {
 	}
 };
 
-module.exports = { createCropCycle };
+const getCropCycle = async function (req, res) {
+	try {
+		const { cropCycleId } = req.body;
+		if (!cropCycleId || !validate.isValidObjectId(cropCycleId))
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide a valid cropCycleId" });
+
+		const findCropCycle = await Crops.findById(cropCycleId);
+		if (!findCropCycle)
+			return res
+				.status(404)
+				.send({ status: false, message: "No cropCycle found" });
+		else return res.status(200).send({ status: true, data: findCropCycle });
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+};
+
+module.exports = { createCropCycle, getCropCycle };

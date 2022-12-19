@@ -87,4 +87,53 @@ const createFields = async function (req, res) {
 	}
 };
 
-module.exports = { createFields };
+const getField = async function (req, res) {
+	try {
+		const { fieldId } = req.body;
+		if (!fieldId || !validate.isValidObjectId(fieldId))
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide a valid fieldId" });
+
+		const findField = await Crops.findById(fieldId);
+		if (!findField)
+			return res.status(404).send({ status: false, message: "No field found" });
+		else return res.status(200).send({ status: true, data: findField });
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+};
+
+const deleteField = async function (req, res) {
+	try {
+		const { fieldId } = req.body;
+		if (!fieldId || !validate.isValidObjectId(fieldId))
+			return res
+				.status(400)
+				.send({ status: false, message: "Please provide a valid fieldId" });
+
+		const findField = await Fields.findById(fieldId);
+		if (!findField)
+			return res.status(404).send({ status: false, message: "No field found" });
+
+		const deleteField = await Fields.findByIdAndUpdate(fieldId, {
+			isDeleted: true,
+			deletedAt: new Date(),
+		});
+
+		const updateRegion = await Region.findByIdAndUpdate(findField.parentId, {
+			$pull: { child: findField._id },
+		});
+		const updateProperty = await Property.findOneAndUpdate(
+			{ cropCycle: { fieldId } },
+			{ $pull: { cropCycle: { fieldId, cropCycleId: findField.cropCycleId } } }
+		);
+		return res
+			.status(200)
+			.send({ status: true, message: "Field deleted successfully" });
+	} catch (error) {
+		res.status(500).send(error.message);
+	}
+};
+
+module.exports = { createFields, getField, deleteField };

@@ -19,9 +19,11 @@ const Properties = new mongoose.Schema(
 			{
 				fieldId: { type: ObjectId, ref: "Fields", _id: false },
 				cropCycleId: { type: ObjectId, ref: "Crops", _id: false },
-				_id:false
+				_id: false,
 			},
 		],
+		isDeleted: { type: Boolean, default: false },
+		deletedAt: { type: Date },
 	},
 	{ timestamps: true }
 );

@@ -11,6 +11,8 @@ const Fields = new mongoose.Schema(
 		longitude: { type: String, required: true },
 		cropCycleId: { type: ObjectId, ref: "Crops", required: true, _id: false },
 		crops: [String],
+		isDeleted: { type: Boolean, default: false },
+		deletedAt: { type: Date },
 	},
 	{ timestamps: true }
 );

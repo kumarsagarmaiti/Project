@@ -10,9 +10,9 @@ const Regions = new mongoose.Schema(
 		regions: [
 			{ name: String, child: { type: ObjectId, ref: "Regions" }, _id: false },
 		],
-		fields: [
-			{ name: String, child: { type: ObjectId, ref: "Fields" }, _id: false },
-		],
+		fields: [{ child: { type: ObjectId, ref: "Fields" }, _id: false }],
+		isDeleted: { type: Boolean, default: false },
+		deletedAt: { type: Date },
 	},
 	{ timestamps: true }
 );
