@@ -75,6 +75,7 @@ const getRegion = async function (req, res) {
 				.send({ status: false, message: "Please provide a valid regionId" });
 
 		const findRegion = await Regions.findOne({
+			userId: req.userId,
 			_id: regionId,
 			isDeleted: false,
 		});
@@ -97,6 +98,7 @@ const deleteRegion = async function (req, res) {
 				.send({ status: false, message: "Please provide a valid regionId" });
 
 		const findRegion = await Regions.findOne({
+			userId: req.userId,
 			_id: regionId,
 			isDeleted: false,
 		});

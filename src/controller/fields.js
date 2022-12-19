@@ -66,9 +66,10 @@ const createFields = async function (req, res) {
 		const updateRegion = await Region.findByIdAndUpdate(parentId, {
 			$push: { fields: { name: req.body.owner, child: createFields._id } },
 		});
+
 		const updateProperty = await Property.findOneAndUpdate(
 			{
-				regions: { child: ObjectId(parentId) },
+				regions: { $elemMatch: { child: ObjectId(parentId) } },
 			},
 			{
 				$push: {
@@ -95,7 +96,11 @@ const getField = async function (req, res) {
 				.status(400)
 				.send({ status: false, message: "Please provide a valid fieldId" });
 
-		const findField = await Crops.findById(fieldId);
+		const findField = await Fields.findOne({
+			_id: fieldId,
+			isDeleted: false,
+			ownerId: req.ownerDetails.ownerId,
+		});
 		if (!findField)
 			return res.status(404).send({ status: false, message: "No field found" });
 		else return res.status(200).send({ status: true, data: findField });
@@ -111,8 +116,12 @@ const deleteField = async function (req, res) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Please provide a valid fieldId" });
-
-		const findField = await Fields.findById(fieldId);
+				
+		const findField = await Fields.findOne({
+			_id: fieldId,
+			isDeleted: false,
+			ownerId: req.ownerDetails.ownerId,
+		});
 		if (!findField)
 			return res.status(404).send({ status: false, message: "No field found" });
 
@@ -122,11 +131,15 @@ const deleteField = async function (req, res) {
 		});
 
 		const updateRegion = await Region.findByIdAndUpdate(findField.parentId, {
-			$pull: { child: findField._id },
+			$pull: { fields: { child: ObjectId(findField._id) } },
 		});
 		const updateProperty = await Property.findOneAndUpdate(
-			{ cropCycle: { fieldId } },
-			{ $pull: { cropCycle: { fieldId, cropCycleId: findField.cropCycleId } } }
+			{
+				cropCycle: { $elemMatch: { fieldId } },
+			},
+			{
+				$pull: { cropCycle: { fieldId, cropCycleId: findField.cropCycleId } },
+			}
 		);
 		return res
 			.status(200)

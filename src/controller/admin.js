@@ -82,7 +82,7 @@ const loginAdmin = async function (req, res) {
 				.send({ status: false, message: "Incorrect password" });
 
 		const token = jwt.sign({ userId: findAdmin._id }, "secretKey", {
-			expiresIn: "30mins",
+			expiresIn: "1h",
 		});
 
 		return res.status(200).send({

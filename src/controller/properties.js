@@ -65,6 +65,7 @@ const getProperty = async function (req, res) {
 				.send({ status: false, message: "Please provide a valid propertyId" });
 
 		const findProperty = await Properties.findOne({
+			userId: req.userId,
 			_id: propertyId,
 			isDeleted: false,
 		});
@@ -87,6 +88,7 @@ const deleteProperty = async function (req, res) {
 				.send({ status: false, message: "Please provide a valid propertyId" });
 
 		const findProperty = await Properties.findOne({
+			userId: req.userId,
 			_id: propertyId,
 			isDeleted: false,
 		});
