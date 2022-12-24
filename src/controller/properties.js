@@ -42,8 +42,10 @@ const createProperties = async function (req, res) {
 		req.body.parentName = isOrgPresent.name;
 
 		const createProperties = await Properties.create(req.body);
-		const updateOrganization = await Organization.findByIdAndUpdate(parentId, {
+		const updateOrganization = Organization.findByIdAndUpdate(parentId, {
 			$push: { properties: { name: name, child: createProperties._id } },
+		}).catch((err) => {
+			res.status(500).send(err.message);
 		});
 
 		return res.status(201).send({
@@ -102,14 +104,16 @@ const deleteProperty = async function (req, res) {
 			deletedAt: new Date(),
 		});
 
-		const updateOrganization = await Organization.findByIdAndUpdate(
+		const updateOrganization = Organization.findByIdAndUpdate(
 			findProperty.parentId,
 			{
 				$pull: {
 					properties: { name: findProperty.name, child: findProperty._id },
 				},
 			}
-		);
+		).catch((err) => {
+			res.status(500).send(err.message);
+		});
 
 		return res
 			.status(200)

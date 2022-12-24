@@ -60,14 +60,18 @@ const createFields = async function (req, res) {
 		req.body.parentName = isRegPresent.name;
 
 		const createFields = await Fields.create(req.body);
-		const updateOwner = await Owner.findByIdAndUpdate(req.body.ownerId, {
+		const updateOwner = Owner.findByIdAndUpdate(req.body.ownerId, {
 			$push: { fieldId: createFields._id },
+		}).catch((err) => {
+			res.status(500).send(err.message);
 		});
-		const updateRegion = await Region.findByIdAndUpdate(parentId, {
+		const updateRegion = Region.findByIdAndUpdate(parentId, {
 			$push: { fields: { name: req.body.owner, child: createFields._id } },
+		}).catch((err) => {
+			res.status(500).send(err.message);
 		});
 
-		const updateProperty = await Property.findOneAndUpdate(
+		const updateProperty = Property.findOneAndUpdate(
 			{
 				regions: { $elemMatch: { child: ObjectId(parentId) } },
 			},
@@ -76,7 +80,9 @@ const createFields = async function (req, res) {
 					cropCycle: { fieldId: createFields._id, cropCycleId: cropCycleId },
 				},
 			}
-		);
+		).catch((err) => {
+			res.status(500).send(err.message);
+		});
 
 		return res.status(201).send({
 			status: true,
@@ -116,7 +122,7 @@ const deleteField = async function (req, res) {
 			return res
 				.status(400)
 				.send({ status: false, message: "Please provide a valid fieldId" });
-				
+
 		const findField = await Fields.findOne({
 			_id: fieldId,
 			isDeleted: false,

@@ -47,12 +47,16 @@ const createRegions = async function (req, res) {
 
 		const createRegions = await Regions.create(req.body);
 		if (isPropPresent) {
-			const updateProperty = await Properties.findByIdAndUpdate(parentId, {
+			const updateProperty = Properties.findByIdAndUpdate(parentId, {
 				$push: { regions: { name: name, child: createRegions._id } },
+			}).catch((err) => {
+				res.status(500).send(err.message);
 			});
 		} else {
-			const updateRegion = await Regions.findByIdAndUpdate(parentId, {
+			const updateRegion = Regions.findByIdAndUpdate(parentId, {
 				$push: { regions: { name: name, child: createRegions._id } },
+			}).catch((err) => {
+				res.status(500).send(err.message);
 			});
 		}
 
@@ -114,10 +118,14 @@ const deleteRegion = async function (req, res) {
 
 		const updateProp = await Properties.findByIdAndUpdate(findRegion.parentId, {
 			$pull: { regions: { name: findRegion.name, child: regionId } },
+		}).catch((err) => {
+			res.status(500).send(err.message);
 		});
 		if (!updateProp) {
-			const updateReg = await Regions.findByIdAndUpdate(findRegion.parentId, {
+			const updateReg = Regions.findByIdAndUpdate(findRegion.parentId, {
 				$pull: { regions: { name: findRegion.name, child: regionId } },
+			}).catch((err) => {
+				res.status(500).send(err.message);
 			});
 		}
 
