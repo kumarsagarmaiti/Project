@@ -117,7 +117,7 @@ const login = async function (req, res) {
 				.send(
 					`Incorrect password. Account will be locked for 24 hours after ${
 						6 - req.temp.length
-					}`
+					} attempts.`
 				);
 		} else {
 			const token = jwt.sign({ userId: req.userDetails._id }, "cointab", {
