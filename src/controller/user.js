@@ -1,4 +1,8 @@
-const User = require("../model/user");
+const db = require("../model");
+
+const User = db.users;
+const Attempt = db.attempts;
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 let emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -14,7 +18,7 @@ const register = async function (req, res) {
 		if (!password || !passwordRegex.test(password))
 			return res.status(400).send("Please provide a valid password");
 
-		const isEmailPresent = await User.findOne({ email });
+		const isEmailPresent = await User.findOne({ where: { email } });
 		if (isEmailPresent) return res.status(400).send("Email already in use");
 
 		req.body.password = await bcrypt.hash(password, 10);
@@ -36,7 +40,7 @@ const checkBlock = async function (req, res, next) {
 			return res.status(400).send("Please provide a valid emailId");
 		if (!password) return res.status(400).send("Please provide password");
 
-		const isEmailPresent = await User.findOne({ email }).lean();
+		const isEmailPresent = await User.findOne({ where: { email } });
 		if (!isEmailPresent)
 			return res.status(404).send("No user found with the emailId");
 
@@ -69,34 +73,45 @@ const checkBlock = async function (req, res, next) {
 const checkAttempts = async function (req, res, next) {
 	try {
 		const { email } = req.body;
-		const userDetails = req.userDetails;
-		let temp = null;
-		let arr = userDetails.attempts;
+		const id = req.userDetails.id;
+		const attempts = await Attempt.findAll({ where: { id } });
+		let temp = attempts;
+		let obj = { user_id: id };
 
-		if (userDetails.attempts.length == 5) {
-			User.findOneAndUpdate(
-				{ email },
-				{ attempts: [], blocked: true, blockedSince: new Date() }
+		if (attempts.length == 5) {
+			User.update(
+				{ blocked: true, blockedSince: new Date() },
+				{
+					where: { id },
+				}
 			).catch((e) => console.log(e));
 			return res
 				.status(401)
 				.send(
 					"Incorrect password entered five times. Try again after 24 hours."
 				);
-		} else if (userDetails.attempts.length < 5) {
-			arr.push(new Date());
-			for (let i = arr.length - 1; i >= 1; i--) {
-				const elapsedTime = (arr[i].getTime() - arr[i - 1].getTime()) / 1000;
+		} else if (attempts.length < 5) {
+			obj.attempt = new Date();
+			attempts.push(obj);
+			var j = 0;
+			for (let i = attempts.length - 1; i >= 1; i--) {
+				const elapsedTime =
+					(attempts[i].attempt.getTime() - attempts[i - 1].attempt.getTime()) /
+					1000;
 				if (elapsedTime > 60) {
-					arr = arr.slice(i);
+					temp = attempts.slice(i);
+					j = i;
 					break;
 				}
 			}
 		}
-		temp = arr;
-		User.findOneAndUpdate({ email }, { attempts: temp }).catch((e) =>
-			console.log(e)
-		);
+		while (j >= 0) {
+			Attempt.destroy({ where: { id: attempts[j].id } });
+			j--;
+		}
+		for (let attempt of temp)
+			await Attempt.create(attempt).catch((e) => console.log(e));
+
 		req.temp = temp;
 		next();
 	} catch (error) {
@@ -106,7 +121,7 @@ const checkAttempts = async function (req, res, next) {
 
 const login = async function (req, res) {
 	try {
-		const { email, password } = req.body;
+		const { password } = req.body;
 		const isPasswordCorrect = await bcrypt.compare(
 			password,
 			req.userDetails.password
@@ -123,7 +138,10 @@ const login = async function (req, res) {
 			const token = jwt.sign({ userId: req.userDetails._id }, "cointab", {
 				expiresIn: "1h",
 			});
-			User.findOneAndUpdate({ email }, { attempts: [], token }).catch((e) =>
+			User.update({ token }, { where: { id: req.userDetails.id } }).catch((e) =>
+				console.log(e)
+			);
+			Attempt.destroy({ where: { user_id: req.userDetails.id } }).catch((e) =>
 				console.log(e)
 			);
 			return res.status(200).send({ token });
