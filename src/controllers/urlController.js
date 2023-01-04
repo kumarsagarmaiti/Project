@@ -6,6 +6,7 @@ const { SET_ASYNC, GET_ASYNC } = require('../caching-DB/caching')
 
 const shortenURL = async function (req, res) {
   try {
+    res.header("Access-Control-Allow-Origin","*")
     const data = req.body
     if (Object.keys(data).length === 0) {
       return res.status(400).send({ status: false, message: "Please provide longUrl" })
@@ -19,7 +20,7 @@ const shortenURL = async function (req, res) {
     }
 
     let urlcode = shortId.generate(data.longUrl)
-    let shortedUrl = `http://localhost:3000/${urlcode}`
+    let shortedUrl = `http://localhost:3001/${urlcode}`
     data.urlCode = urlcode
     data.shortUrl = shortedUrl
 
@@ -37,7 +38,7 @@ const redirecturl = async function (req, res) {
   try {
     let urlCode = req.params.urlCode
     if (!urlCode) {
-      return res.status(400).send({ status: false, message: "plese provide sort url" })
+      return res.status(400).send({ status: false, message: "plese provide short url" })
     }
     if (!shortId.isValid(urlCode)) {
       return res.status(400).send({ status: false, message: "invalid urlCode" })
