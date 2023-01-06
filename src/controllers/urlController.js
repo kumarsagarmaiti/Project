@@ -6,8 +6,6 @@ const { SET_ASYNC, GET_ASYNC } = require("../caching-DB/caching");
 
 const shortenURL = async function (req, res) {
 	try {
-		// res.header("Access-Control-Allow-Origin:*");
-		// res.header("Access-Control-Allow-Methods: GET,HEAD,PUT,PATCH,POST,DELETE");
 		let data = req.body;
 		data.longUrl = data.longUrl.trim();
 		if (Object.keys(data).length === 0) {
