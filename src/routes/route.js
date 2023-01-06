@@ -1,15 +1,17 @@
-const express=require("express")
-const router= express.Router()
+const express = require("express");
+const router = express.Router();
 
-const URLController=require("../controllers/urlController")
+const URLController = require("../controllers/urlController");
 
-router.get("/test",(req,res)=>res.send("Working"))
+router.get("/test", (req, res) => {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.send("Working");
+});
 
-router.post("/url/shorten",URLController.shortenURL)
+router.post("/url/shorten", URLController.shortenURL);
 
-router.get('/:urlCode', URLController.redirecturl)
+router.get("/:urlCode", URLController.redirecturl);
 
-router.all("/*", (req, res) => res.status(400).send("Invalid URL"))
+router.all("/*", (req, res) => res.status(400).send("Invalid URL"));
 
-
-module.exports=router 
+module.exports = router;
