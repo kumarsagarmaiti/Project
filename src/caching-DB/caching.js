@@ -1,15 +1,6 @@
 const redis = require("redis");
 const { promisify } = require("util");
 
-// const redisclient = redis.createClient(
-//     13585,
-//     'redis-13585.c301.ap-south-1-1.ec2.cloud.redislabs.com',
-//     {no_ready_check:true}
-//     )
-//     redisclient.auth("p3gXzqtvssZriZI1dCh3klI0qFjmmoZn", function(err){
-//         if(err) throw (err)
-//     })
-
 const redisclient = redis.createClient({
 	host: "redis-11082.c212.ap-south-1-1.ec2.cloud.redislabs.com",
 	port: 11082,
