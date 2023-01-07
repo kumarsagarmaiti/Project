@@ -7,15 +7,13 @@
 	background-position: center;
 	background-size: cover;
 	position: relative;
-	background-color: blue;
-  background-image: linear-gradient(rgba(0,0,50,0.8),rgba(0,0,50,0.8)),url(background.jpg);
 }
 
 .form-box {
 	width: 90%;
 	max-width: 450px;
 	position: absolute;
-	top: -20%;
+	top: -50%;
 	left: 50%;
 	transform: translate(-50%, 50%);
 	background: #fff;
@@ -49,11 +47,10 @@ input {
 .btn-field {
 	width: 100%;
 	display: flex;
-	justify-content: center;
+	justify-content: s;
 }
 
 .btn-field button {
-  margin-top: 20px;
 	flex-basis: 48%;
 	background: #3c00a0;
 	color: #fff;
@@ -63,4 +60,9 @@ input {
 	outline: 0;
 	cursor: pointer;
 	transition: background 1s;
+}
+
+.form-error-message {
+	font-size: small;
+	color: red;
 }

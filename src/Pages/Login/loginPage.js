@@ -1,6 +1,6 @@
-import "./registerPage.css";
+import "./loginPage.css";
 
-export default function RegisterPage() {
+export default function LoginPage() {
 	return (
 		<div>
 			<nav className="navbar">
@@ -26,7 +26,7 @@ export default function RegisterPage() {
 			</nav>
 			<div className="container">
 				<div className="form-box">
-					<h1>Sign Up</h1>
+					<h1>Login</h1>
 					<form>
 						<div className="input-group">
 							<div className="input-field">
@@ -37,7 +37,7 @@ export default function RegisterPage() {
 							</div>
 						</div>
 						<div className="btn-field">
-							<button type="button">Sign Up</button>
+							<button type="button">Login</button>
 						</div>
 					</form>
 				</div>

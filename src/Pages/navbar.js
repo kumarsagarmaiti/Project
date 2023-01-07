@@ -1,6 +1,6 @@
-import "./homePage.css";
+import "./Home/homePage.css";
 
-export default function HomePage() {
+export default function Navbar() {
 	return (
 		<nav className="navbar">
 			<div className="container-fluid">
