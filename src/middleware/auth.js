@@ -9,6 +9,7 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const authenticate = async function (req, res, next) {
 	try {
+		console.log(req.headers)
 		let token = req.headers["x-api-key"];
 		if (!token)
 			return res

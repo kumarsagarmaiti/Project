@@ -159,9 +159,9 @@ const getBooks = async function (req, res) {
 				releasedAt: 1,
 			})
 			.sort({ title: 1 });
-		if (findbook.length === 0) {
-			return res.status(404).send({ status: false, message: "No books found" });
-		}
+		// if (findbook.length === 0) {
+		// 	return res.status(404).send({ status: false, message: "No books found" });
+		// }
 
 		return res
 			.status(200)

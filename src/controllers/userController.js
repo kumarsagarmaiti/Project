@@ -158,9 +158,9 @@ const userLogin = async function (req, res) {
 		const secretMessage = "kashish,divyanshu,sagar";
 
 		const token = jwt.sign(
-			{ userId: existingUser._id.toString() },
+			{ userId: existingUser._id.toString(), name: existingUser.name },
 			secretMessage,
-			{ expiresIn: "30m" }
+			{ expiresIn: "1h" }
 		);
 
 		let decodedToken = jwt.verify(token, secretMessage);
