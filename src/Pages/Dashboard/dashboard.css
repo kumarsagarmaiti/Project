@@ -1,0 +1,24 @@
+.book-box {
+	display: flex;
+	justify-content: flex-start;
+	align-items: flex-start;
+  margin: 25px;
+}
+
+.box {
+	height: 200px;
+	width: 150px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-style: dashed;
+}
+
+.add-book {
+	height: 35px;
+	background-color: beige;
+}
+
+#welcome{
+  margin: 25px;
+}
