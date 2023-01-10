@@ -7,6 +7,7 @@ import HomePage from "./Pages/Home/homePage";
 import RegisterPage from "./Pages/Register/registerPage";
 import LoginPage from "./Pages/Login/loginPage";
 import Dashboard from "./Pages/Dashboard/dashboard";
+import BookDashboard from "./Pages/Dashboard/book-dashboard";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -16,6 +17,7 @@ root.render(
 			<Route path="dashboard" element={<Dashboard />}>
 				<Route path=":id" element={<Dashboard />} />
 			</Route>
+			<Route path="dashboard/:id/books/:bookId" element={<BookDashboard />} />
 			<Route path="register" element={<RegisterPage />} />
 			<Route path="login" element={<LoginPage />} />
 		</Routes>
