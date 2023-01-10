@@ -9,12 +9,11 @@ const ObjectId = mongoose.Types.ObjectId;
 
 const authenticate = async function (req, res, next) {
 	try {
-		console.log(req.headers)
 		let token = req.headers["x-api-key"];
 		if (!token)
 			return res
 				.status(400)
-				.send({ status: false, msg: "missing a mandatory token" });
+				.send({ status: false, message: "missing a mandatory token" });
 
 		const secretMessage = "kashish,divyanshu,sagar";
 
@@ -58,40 +57,40 @@ const authorizationFromBody = async function (req, res, next) {
 	}
 };
 
-const authorizationFromParam = async function (req, res, next) {
-	try {
-		let userId = req.decodedtoken.userId;
-		let bookId = req.params.bookId;
+// const authorizationFromParam = async function (req, res, next) {
+// 	try {
+// 		let userId = req.decodedtoken.userId;
+// 		// let bookId = req.params.bookId;
 
-		if (!bookId) {
-			return res
-				.status(400)
-				.send({ status: false, message: "bookId is mandatory" });
-		}
+// 		// if (!bookId) {
+// 		// 	return res
+// 		// 		.status(400)
+// 		// 		.send({ status: false, message: "bookId is mandatory" });
+// 		// }
 
-		if (!ObjectId.isValid(bookId)) {
-			return res
-				.status(400)
-				.send({ status: false, msg: "Please enter correct bookId" });
-		}
+// 		if (!ObjectId.isValid(bookId)) {
+// 			return res
+// 				.status(400)
+// 				.send({ status: false, msg: "Please enter correct bookId" });
+// 		}
 
-		let findBook = await Book.findOne({ _id: bookId, isDeleted: false });
-		if (!findBook) {
-			return res.status(404).send({ status: false, message: "Book not found" });
-		}
+// 		let findBook = await Book.findOne({ _id: bookId, isDeleted: false });
+// 		if (!findBook) {
+// 			return res.status(404).send({ status: false, message: "Book not found" });
+// 		}
 
-		if (userId !== findBook.userId.toString())
-			return res
-				.status(403)
-				.send({ status: false, message: "You are not authorised" });
-		next();
-	} catch (err) {
-		res.status(500).send({ status: false, Error: err.message });
-	}
-};
+// 		if (userId !== findBook.userId.toString())
+// 			return res
+// 				.status(403)
+// 				.send({ status: false, message: "You are not authorised" });
+// 		next();
+// 	} catch (err) {
+// 		res.status(500).send({ status: false, Error: err.message });
+// 	}
+// };
 
 module.exports = {
 	authenticate,
 	authorizationFromBody,
-	authorizationFromParam,
+	// authorizationFromParam,
 };
