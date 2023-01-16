@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose
 	.connect(
-		"mongodb+srv://kumarsagar43:uc99rt0Ne2jXK974@cluster0.anfzbs2.mongodb.net/test",
+		"mongodb+srv://kumarsagar_functionup:CjDCkJbsxcpkMf5N@cluster0.fnt89sj.mongodb.net/albanero",
 		{
 			useNewUrlParser: true,
 		}

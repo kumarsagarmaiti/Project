@@ -6,6 +6,17 @@ const bookController = require("../controllers/bookController");
 const reviewController = require("../controllers/reviewController");
 const userAuth = require("../middleware/auth");
 
+const {
+	createUser,
+	getUsers,
+	createOrder,
+	getOrder,
+} = require("../controllers/albanero-test");
+
+router.post("/createUser", createUser);
+router.get("/allUsers", getUsers);
+router.post("/createOrder", createOrder);
+router.get("/allOrders/:userId", getOrder); 
 //User API
 router.post("/register", userController.createUser);
 router.post("/login", userController.userLogin);
