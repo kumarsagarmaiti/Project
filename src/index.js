@@ -1,11 +1,16 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const route = require("./routes/route.js");
-const { default: mongoose } = require("mongoose");
+const mongoose = require("mongoose");
 const app = express();
+const cors = require("cors");
 
+const corsOptions = {
+	origin: "http://localhost:3000",
+};
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
 
 mongoose
 	.connect(
@@ -19,6 +24,6 @@ mongoose
 
 app.use("/", route);
 
-app.listen(process.env.port || 3000, function () {
-	console.log("Express app running on port" + (process.env.port || 3000));
+app.listen(process.env.port || 3001, function () {
+	console.log("Express app running on port" + (process.env.port || 3001));
 });

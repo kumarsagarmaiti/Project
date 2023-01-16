@@ -10,88 +10,88 @@ const createUser = async function (req, res) {
 	try {
 		const data = req.body;
 
-		if (Object.keys(data).length === 0)
-			return res
-				.status(400)
-				.send({ status: false, message: "Please Provide Data" });
+		// if (Object.keys(data).length === 0)
+		// 	return res
+		// 		.status(400)
+		// 		.send({ status: false, message: "Please Provide Data" });
 
-		const requiredFields = ["title", "name", "phone", "email", "password"];
-		const acceptedFields = [
-			"title",
-			"name",
-			"phone",
-			"email",
-			"password",
-			"address",
-		];
+		// const requiredFields = ["title", "name", "phone", "email", "password"];
+		// const acceptedFields = [
+		// 	"title",
+		// 	"name",
+		// 	"phone",
+		// 	"email",
+		// 	"password",
+		// 	"address",
+		// ];
 
-		for (key in data) {
-			if (!acceptedFields.includes(key))
-				return res.status(400).send({
-					status: false,
-					message: `Fields must be among these: ${acceptedFields.join(", ")}`,
-				});
-		}
+		// for (key in data) {
+		// 	if (!acceptedFields.includes(key))
+		// 		return res.status(400).send({
+		// 			status: false,
+		// 			message: `Fields must be among these: ${acceptedFields.join(", ")}`,
+		// 		});
+		// }
 
-		for (field of requiredFields) {
-			if (!data[field])
-				return res
-					.status(400)
-					.send({ status: false, message: `${field} is missing.` });
-		}
+		// for (field of requiredFields) {
+		// 	if (!data[field])
+		// 		return res
+		// 			.status(400)
+		// 			.send({ status: false, message: `${field} is missing.` });
+		// }
 
-		for (field of requiredFields) {
-			if (!isValidString(data[field]))
-				return res.status(400).send({
-					status: false,
-					message: `${field} must contain characters.`,
-				});
-		}
+		// for (field of requiredFields) {
+		// 	if (!isValidString(data[field]))
+		// 		return res.status(400).send({
+		// 			status: false,
+		// 			message: `${field} must contain characters.`,
+		// 		});
+		// }
 
-		if (!["Mr", "Mrs", "Miss"].includes(data.title))
-			return res.status(400).send({
-				status: false,
-				message: "Title must be among these: Mr, Mrs, Miss",
-			});
+		// if (!["Mr", "Mrs", "Miss"].includes(data.title))
+		// 	return res.status(400).send({
+		// 		status: false,
+		// 		message: "Title must be among these: Mr, Mrs, Miss",
+		// 	});
 
-		const phoneRegex = /^((\+91)?|91)?[789]{1}[0-9]{9}$/;
-		if (!phoneRegex.test(data.phone))
-			return res.status(400).send({
-				status: false,
-				message: "Invalid Phone Number",
-			});
+		// const phoneRegex = /^((\+91)?|91)?[789]{1}[0-9]{9}$/;
+		// if (!phoneRegex.test(data.phone))
+		// 	return res.status(400).send({
+		// 		status: false,
+		// 		message: "Invalid Phone Number",
+		// 	});
 
-		const emailRegex = /^([a-z0-9_.]+@[a-z]+\.[a-z]{2,3})?$/;
-		if (!emailRegex.test(data.email))
-			return res.status(400).send({
-				status: false,
-				message: "Invalid Email",
-			});
+		// const emailRegex = /^([a-z0-9_.]+@[a-z]+\.[a-z]{2,3})?$/;
+		// if (!emailRegex.test(data.email))
+		// 	return res.status(400).send({
+		// 		status: false,
+		// 		message: "Invalid Email",
+		// 	});
 
-		const passwordRegex =
-			/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,15})/;
-		if (data.password.trim().length > 15 || data.password.trim().length < 8)
-			return res.status(400).send({
-				status: false,
-				message: "Password length should be between 8 to 15 characters",
-			});
-		if (!passwordRegex.test(data.password))
-			return res.status(400).send({
-				status: false,
-				message:
-					"Password should contain uppercase, lowercase, special characters and a number",
-			});
+		// const passwordRegex =
+		// 	/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,15})/;
+		// if (data.password.trim().length > 15 || data.password.trim().length < 8)
+		// 	return res.status(400).send({
+		// 		status: false,
+		// 		message: "Password length should be between 8 to 15 characters",
+		// 	});
+		// if (!passwordRegex.test(data.password))
+		// 	return res.status(400).send({
+		// 		status: false,
+		// 		message:
+		// 			"Password should contain uppercase, lowercase, special characters and a number",
+		// 	});
 
-		const addressContains = ["street", "city", "pincode"];
-		if (data.address) {
-			for (field of addressContains) {
-				if (!isValidString(data.address[field]))
-					return res.status(400).send({
-						status: false,
-						message: `${field} must contain characters.`,
-					});
-			}
-		}
+		// const addressContains = ["street", "city", "pincode"];
+		// if (data.address) {
+		// 	for (field of addressContains) {
+		// 		if (!isValidString(data.address[field]))
+		// 			return res.status(400).send({
+		// 				status: false,
+		// 				message: `${field} must contain characters.`,
+		// 			});
+		// 	}
+		// }
 
 		const uniqueFields = ["phone", "email"];
 		for (field of uniqueFields) {
@@ -158,9 +158,9 @@ const userLogin = async function (req, res) {
 		const secretMessage = "kashish,divyanshu,sagar";
 
 		const token = jwt.sign(
-			{ userId: existingUser._id.toString() },
+			{ userId: existingUser._id.toString(), name: existingUser.name },
 			secretMessage,
-			{ expiresIn: "30m" }
+			{ expiresIn: "1h" }
 		);
 
 		let decodedToken = jwt.verify(token, secretMessage);

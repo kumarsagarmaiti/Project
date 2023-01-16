@@ -30,21 +30,21 @@ router.post(
 );
 router.get("/books", userAuth.authenticate, bookController.getBooks);
 router.get(
-	"/books/:bookId",
+	"/:bookId/books",
 	userAuth.authenticate,
 
 	bookController.booksByParam
 );
 router.put(
-	"/books/:bookId",
+	"/books",
 	userAuth.authenticate,
-	userAuth.authorizationFromParam,
+	// userAuth.authorizationFromParam,
 	bookController.updateBooks
 );
 router.delete(
 	"/books/:bookId",
 	userAuth.authenticate,
-	userAuth.authorizationFromParam,
+	// userAuth.authorizationFromParam,
 	bookController.deleteBook
 );
 
